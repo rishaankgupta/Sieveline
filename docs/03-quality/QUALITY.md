@@ -31,7 +31,7 @@ done until its numbers are met or a gap is written down with a reason.
 |---|---|
 | Web uptime | 99.5% monthly at launch |
 | Runs that finish or fail with a clear reason | 100% (no stuck runs; a watchdog ends runs idle > 15 min) |
-| Worker crash during a run | Resumes from the last finished step |
+| Step failure or redeploy during a run | Resumes from the last finished step |
 | Backups | Daily; restore tested before launch |
 
 ## 4. Accessibility

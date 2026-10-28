@@ -1,4 +1,4 @@
-# ADR-0001: Use TypeScript for web app and worker
+# ADR-0001: Use TypeScript everywhere (web app and research pipeline)
 
 - Status: Proposed
 - Date: 2026-10-28
