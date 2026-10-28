@@ -1,4 +1,5 @@
 import { assertCan, draftThesis } from "@sieveline/core";
+import { hitRateLimit } from "@sieveline/db";
 import { z } from "zod";
 import { assertSameOrigin, handle, HttpError, readJson } from "@/server/api";
 import { app, logger } from "@/server/context";
@@ -9,8 +10,7 @@ export const maxDuration = 120;
 
 const body = z.object({ description: z.string().trim().min(15).max(1500) });
 
-/** Per-instance throttle for drafts (each is one LLM call). Serverless instances don't share it; fine at this scale. */
-const recent = new Map<string, number[]>();
+/** Each draft is one LLM call; the limit is shared by all server instances (Postgres). */
 const DRAFTS_PER_HOUR = 20;
 
 export function POST(request: Request): Promise<Response> {
@@ -20,10 +20,7 @@ export function POST(request: Request): Promise<Response> {
     const ws = await requireWorkspace();
     assertCan(ws.role, "thesis.edit");
     if (!llm) throw new HttpError(503, "Drafting isn't configured yet. Start from the template instead.");
-    const now = Date.now();
-    const times = (recent.get(ws.userId) ?? []).filter((t) => now - t < 3_600_000);
-    if (times.length >= DRAFTS_PER_HOUR) throw new HttpError(429, "Too many drafts this hour. Please edit the current one.");
-    recent.set(ws.userId, [...times, now]);
+    if (!(await hitRateLimit(app().db, `draft:${ws.userId}`, DRAFTS_PER_HOUR, 3_600_000))) throw new HttpError(429, "Too many drafts this hour. Please edit the current one.");
 
     const { description } = body.parse(await readJson(request));
     try {

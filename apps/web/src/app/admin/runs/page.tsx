@@ -1,6 +1,8 @@
+import { adminCan } from "@sieveline/core";
 import { adminListDeepDives, adminListRuns } from "@sieveline/db";
 import { formatDate } from "@/lib/labels";
 import { adminDb } from "@/server/admin";
+import { ActionButton } from "../admin-client";
 import { n, one, PageTitle, pageStaff, Table, Td } from "../ui";
 
 export const dynamic = "force-dynamic";
@@ -9,7 +11,8 @@ const STATUSES = ["", "queued", "running", "succeeded", "failed", "cancelled"];
 const STUCK_MS = 30 * 60_000;
 
 export default async function AdminRuns({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
-  await pageStaff("runs.view");
+  const staff = await pageStaff("runs.view");
+  const canCancel = adminCan(staff.role, "runs.cancel");
   const status = one((await searchParams).status);
   const db = adminDb();
   const [runs, dives] = await Promise.all([adminListRuns(db, { status, limit: 100 }), adminListDeepDives(db, 50)]);
@@ -38,7 +41,12 @@ export default async function AdminRuns({ searchParams }: { searchParams: Promis
                 <Td className="tabular-nums">{Number(r.llmCostUsd).toFixed(4)}</Td>
                 <Td className="whitespace-nowrap">{formatDate(r.createdAt)}</Td>
                 <Td className="whitespace-nowrap">{formatDate(r.finishedAt) || "—"}</Td>
-                <Td className="max-w-xs text-xs">{r.error ?? ""}</Td>
+                <Td className="max-w-xs text-xs">
+                  {r.error ?? ""}
+                  {canCancel && (r.status === "running" || r.status === "queued") && (
+                    <ActionButton label="Stop" method="POST" path={`/api/admin/runs/${r.id}/cancel`} body={{}} needsReason confirm="Stop this list? Used credits stay charged, the rest is released." />
+                  )}
+                </Td>
               </tr>
             );
           })}

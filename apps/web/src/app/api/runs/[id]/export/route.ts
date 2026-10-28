@@ -1,5 +1,6 @@
 import { assertCan, toCsv } from "@sieveline/core";
 import { getRunResults, schema, withTenant } from "@sieveline/db";
+import { hitRateLimit } from "@sieveline/db";
 import { handle, HttpError, isUuid } from "@/server/api";
 import { app } from "@/server/context";
 import { requireWorkspace } from "@/server/session";
@@ -13,6 +14,7 @@ export function GET(request: Request, { params }: { params: Promise<{ id: string
     if (!isUuid(id)) throw new HttpError(404, "Not found");
     const ws = await requireWorkspace();
     assertCan(ws.role, "export.download");
+    if (!(await hitRateLimit(app().db, `export:${ws.userId}`, 60, 3_600_000))) throw new HttpError(429, "Too many downloads this hour. Please try again later.");
     const { db } = app();
     const data = await getRunResults(db, ws, id);
     if (!data) throw new HttpError(404, "Not found");

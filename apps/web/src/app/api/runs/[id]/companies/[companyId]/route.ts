@@ -1,5 +1,5 @@
 import { assertCan } from "@sieveline/core";
-import { setReview, setShortlistFlags } from "@sieveline/db";
+import { hitRateLimit, setReview, setShortlistFlags } from "@sieveline/db";
 import { z } from "zod";
 import { assertSameOrigin, handle, HttpError, isUuid, readJson } from "@/server/api";
 import { app } from "@/server/context";
@@ -23,6 +23,7 @@ export function PATCH(request: Request, { params }: { params: Promise<{ id: stri
     assertSameOrigin(request, app().env.APP_URL);
     const ws = await requireWorkspace();
     assertCan(ws.role, "review.write");
+    if (!(await hitRateLimit(app().db, `review:${ws.userId}`, 600, 3_600_000))) throw new HttpError(429, "Too many changes this hour. Please slow down.");
     const input = body.parse(await readJson(request));
     const { db } = app();
     if (input.pinned !== undefined || input.hidden !== undefined) {

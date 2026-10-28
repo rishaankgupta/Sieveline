@@ -76,3 +76,16 @@ describe("stuck work and cancel", () => {
     expect(audit.find((a) => a.action === "run.ended_stuck")).toMatchObject({ actorUserId: SYSTEM_ACTOR, actorIsAdmin: true });
   });
 });
+
+describe("shared rate limit", () => {
+  it("allows up to max per window, then refuses; keys are independent", async () => {
+    const { hitRateLimit } = await import("../src/index.ts");
+    await as("sieveline_app", async () => {
+      for (let i = 0; i < 3; i++) expect(await hitRateLimit(db, "t:u1", 3, 60_000)).toBe(true);
+      expect(await hitRateLimit(db, "t:u1", 3, 60_000)).toBe(false);
+      expect(await hitRateLimit(db, "t:u2", 3, 60_000)).toBe(true);
+      // A window of 0 ms has always expired, so the count restarts.
+      expect(await hitRateLimit(db, "t:u1", 3, 0)).toBe(true);
+    });
+  });
+});
