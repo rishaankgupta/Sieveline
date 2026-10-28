@@ -93,7 +93,7 @@ line of defense behind application checks (see SECURITY.md).
 | Background runs | Vercel Workflow | Durable, retryable steps on Vercel (ADR-0004) |
 | Chat | Vercel AI SDK | Streaming, typed tool calls, many LLM providers |
 | Auth | Better Auth (or Auth.js; decided in ADR-0003) | Email/password, OAuth, sessions in our DB |
-| Validation | Zod | One schema for forms, API and worker |
+| Validation | Zod | One schema for forms, API and research steps |
 | Payments | Stripe | Checkout, subscriptions, tax, webhooks |
 | Email | Resend or Postmark | Transactional email with domain authentication |
 | Errors / tracing | Sentry + OpenTelemetry | Find errors and slow paths |
