@@ -8,7 +8,7 @@ on any company.
 
 Stack: Next.js on Vercel, Neon Postgres, Vercel Workflow, Tavily (all endpoints), any LLM.
 
-> Status: **Milestone 0 (planning) complete; M1 next**. No application code yet. See `docs/05-plan/ROADMAP.md`.
+> Status: **Milestone 1 (foundation) in progress.** See `docs/05-plan/ROADMAP.md`.
 
 ## Where things are
 
@@ -27,6 +27,30 @@ Stack: Next.js on Vercel, Neon Postgres, Vercel Workflow, Tavily (all endpoints)
 | `docs/06-operations/` | Deployment and runbooks (filled in during Milestone 7–8) |
 | `PROGRESS_LOG.md` | Timestamped record of every completed change (UTC) |
 | `.env.example` | Every secret and setting the app needs, with empty placeholders |
+
+## Code layout
+
+| Path | What it holds |
+|---|---|
+| `apps/web` | Next.js app (pages, API routes, admin panel later) |
+| `packages/core` | Product logic with no framework code: thesis schema, signals, quote check, scoring, CSV export, credit budget, config validation, Tavily client |
+| `packages/db` | Database schema, migrations, row-level security, tenant context helper |
+
+## Development
+
+Needs Node 22+ and pnpm.
+
+```bash
+pnpm install
+pnpm check            # lint + type check + all tests (core, db with real Postgres in-process, web)
+pnpm --filter web build
+cp .env.example apps/web/.env.local   # fill in values, then:
+pnpm dev
+```
+
+The server refuses to start if a required setting is missing or invalid, and names the setting
+(never its value). Database tests run against a real Postgres engine in memory (PGlite), so no
+database server is needed to run them.
 
 ## Rules for working in this repo
 

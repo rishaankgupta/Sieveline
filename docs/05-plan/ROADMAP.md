@@ -1,6 +1,6 @@
 # Roadmap
 
-Last updated: 2026-10-28
+Last updated: 2026-10-28 (M1 started)
 
 Status values: `todo`, `in progress`, `blocked`, `done`.
 Size: **S** ≈ under 1 working session, **M** ≈ 1–2 sessions, **L** ≈ 3+ sessions.
@@ -27,14 +27,14 @@ Each milestone ends with a **gate**: its checks must pass before the next milest
 
 | ID | Task | Size | Status | Done when |
 |---|---|---|---|---|
-| M1-T01 | Monorepo: `apps/web`, `packages/core`, `packages/db`; pnpm workspaces | S | todo | `pnpm install` and `pnpm build` succeed |
-| M1-T02 | Lint, format, strict TypeScript, commit hooks | S | todo | `pnpm check` passes on clean repo |
-| M1-T03 | Env config with Zod validation; app refuses to start with missing secrets | S | todo | Unit test covers missing/invalid vars |
+| M1-T01 | Monorepo: `apps/web`, `packages/core`, `packages/db`; pnpm workspaces | S | done | `pnpm install` and `pnpm build` succeed |
+| M1-T02 | Lint, format, strict TypeScript, commit hooks | S | done (lint + strict types; commit hooks deferred) | `pnpm check` passes on clean repo |
+| M1-T03 | Env config with Zod validation; app refuses to start with missing secrets | S | done | Unit test covers missing/invalid vars |
 | M1-T04 | Neon project: main + dev branches; preview deploys get their own branch | S | blocked (owner: Neon account) | Migrations run on a fresh branch |
-| M1-T05 | Schema + migrations for all tables in ARCHITECTURE §4 | M | todo | Migrations apply and roll back |
-| M1-T06 | Row-level security + workspace context per request | M | todo | Query without workspace context returns nothing |
+| M1-T05 | Schema + migrations for all tables in ARCHITECTURE §4 | M | done | Migrations apply and roll back |
+| M1-T06 | Row-level security + workspace context per request | M | done | Query without workspace context returns nothing |
 | M1-T07 | Structured logging, error tracking, request ids | S | todo | Errors arrive with request id, no secrets |
-| M1-T08 | CI: lint, types, tests, dependency + secret scan; Vercel preview per PR | M | todo | CI green; a planted fake secret is caught |
+| M1-T08 | CI: lint, types, tests, dependency + secret scan; Vercel preview per PR | M | in progress (workflow written; runs when GitHub is connected) | CI green; a planted fake secret is caught |
 | M1-T09 | Vercel Workflow spike: step retries, timeouts, local dev, costs (check current docs) | S | todo | Short report in ADR-0004 |
 
 **Gate:** CI green; RLS test passes; Workflow spike confirms the design.
@@ -57,11 +57,11 @@ Each milestone ends with a **gate**: its checks must pass before the next milest
 
 | ID | Task | Size | Status | Done when |
 |---|---|---|---|---|
-| M3-T01 | Tavily client for Search, Map, Extract, Crawl, Research (+ polling/stream), Usage; per-endpoint rate limiters; `Retry-After`; timeouts | L | todo | Contract tests against recorded responses for every endpoint |
+| M3-T01 | Tavily client for Search, Map, Extract, Crawl, Research (+ polling/stream), Usage; per-endpoint rate limiters; `Retry-After`; timeouts | L | in progress (client + mocked contract tests done; real recordings in M3-T10) | Contract tests against recorded responses for every endpoint |
 | M3-T02 | Response cache in Postgres with expiry | S | todo | Repeat call makes no network request |
 | M3-T03 | LLM client via AI SDK; strict JSON schemas; timeouts | S | todo | Malformed output handled without crashing a run |
-| M3-T04 | Credit ledger: reserve, reconcile from `usage.credits`, monthly caps, global daily ceiling, daily check against Tavily usage endpoint | M | todo | Tests: run stops at cap; unused credits released; >5% drift alerts |
-| M3-T05 | Port prototype logic: signals, quote check, scoring (with tests) | M | todo | Prototype cases reproduced; ≥ 90% coverage |
+| M3-T04 | Credit ledger: reserve, reconcile from `usage.credits`, monthly caps, global daily ceiling, daily check against Tavily usage endpoint | M | in progress (reservation logic + tests done; DB persistence next) | Tests: run stops at cap; unused credits released; >5% drift alerts |
+| M3-T05 | Port prototype logic: signals, quote check, scoring (with tests) | M | done | Prototype cases reproduced; ≥ 90% coverage |
 | M3-T06 | Query planner: thesis → 10–30 search variants | S | todo | Eval: variants find ≥ 20% more unique domains than fixed templates |
 | M3-T07 | Pipeline stages 1–12 as Workflow steps; batching; resume; watchdog | L | todo | Kill mid-run → resumes and finishes |
 | M3-T08 | Red-flag news checks and Crawl deep read for top candidates | M | todo | Flags appear with dates and links |
@@ -74,7 +74,7 @@ Each milestone ends with a **gate**: its checks must pass before the next milest
 
 | ID | Task | Size | Status | Done when |
 |---|---|---|---|---|
-| M4-T01 | Design tokens, layout shell, navigation, light/dark | M | todo | axe: 0 serious issues |
+| M4-T01 | Design tokens, layout shell, navigation, light/dark | M | in progress (tokens, light/dark, skip link) | axe: 0 serious issues |
 | M4-T02 | Plain-words thesis entry → editable rules; calibration-lab template | M | todo | E2E: describe, edit, save, version |
 | M4-T03 | Cost estimate before run | S | todo | Estimate ≥ actual in 20 test runs |
 | M4-T04 | Run page with live progress per stage and cancel | M | todo | Updates ≤ 5 s; cancel stops spending |

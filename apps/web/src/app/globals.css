@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+/* Design tokens (light and dark). Contrast checked for WCAG 2.2 AA on body text. */
+@theme {
+  --color-bg: #fbfaf7;
+  --color-surface: #ffffff;
+  --color-ink: #1c1b18;
+  --color-muted: #5c5a53;
+  --color-line: #e4e1d8;
+  --color-accent: #1f5f4a;
+  --color-accent-ink: #ffffff;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --radius-card: 14px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg: #12130f;
+    --color-surface: #1b1c18;
+    --color-ink: #f1efe8;
+    --color-muted: #b4b1a6;
+    --color-line: #2e2f29;
+    --color-accent: #6fc7a5;
+    --color-accent-ink: #0d1f18;
+  }
+}
+
+html {
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}

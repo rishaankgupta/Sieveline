@@ -11,6 +11,7 @@ Last updated: 2026-10-28
 | D3 | Hosting | **Vercel** (app) + **Neon** (Postgres) (ADR-0004) | 2026-10-28 |
 | D11 | Accounts | Owner has Vercel and Neon; also has Cloudflare. Role of Cloudflare proposed in ADR-0006 | 2026-10-28 |
 | D12 | Admin panel | Manage everything from one panel (`docs/07-admin/ADMIN.md`) | 2026-10-28 |
+| D15 | Hosting cost | Free tiers only: GitHub Student Pack domain, free Vercel / Neon / Cloudflare plans. Code stays within free limits (each research step under 300 s) | 2026-10-28 |
 | D4 | LLM provider | Deferred; owner will decide when providing the Tavily key. Built provider-agnostic | 2026-10-28 |
 
 ### D1 notes: name check for "Sieveline"
@@ -34,6 +35,11 @@ Last updated: 2026-10-28
 | D10 | External penetration test before launch? | No; ASVS review + ZAP scan | M7 |
 | D13 | Approve Cloudflare role (ADR-0006, option C)? | Option C | M8 |
 | D14 | Give access: Vercel team, Neon project, Cloudflare account (invite or API tokens with least privilege) | Local development until then | M1-T04 |
+
+### D15 note
+Vercel's free Hobby plan is for non-commercial use. It is fine while building and testing.
+Before charging customers, either move to a paid Vercel plan or to another host; the research
+code is kept host-independent (ADR-0006) so that switch stays small.
 
 ## Keys you will provide later
 
