@@ -17,6 +17,7 @@
     "@node-rs/argon2": "2.2.2",
     "@sieveline/core": "workspace:*",
     "@sieveline/db": "workspace:*",
+    "@vercel/functions": "3.10.4",
     "ai": "7.0.155",
     "better-auth": "1.7.14",
     "drizzle-orm": "^0.45.4",

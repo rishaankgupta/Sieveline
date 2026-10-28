@@ -66,8 +66,20 @@ export class ConfigError extends Error {
   }
 }
 
+/**
+ * APP_URL when set; otherwise the URL Vercel provides for this deployment (system variables,
+ * always present on Vercel). Production uses the stable production domain, previews their own
+ * URL, so auth origin checks match the address the browser is actually on.
+ */
+export function resolveAppUrl(source: Record<string, string | undefined>): string | undefined {
+  if (source.APP_URL?.trim()) return source.APP_URL.trim();
+  const host = source.VERCEL_ENV === "production" ? source.VERCEL_PROJECT_PRODUCTION_URL : source.VERCEL_URL;
+  return host ? `https://${host}` : undefined;
+}
+
 export function loadServerEnv(source: Record<string, string | undefined> = process.env): ServerEnv {
-  const parsed = serverEnvSchema.safeParse(source);
+  const appUrl = resolveAppUrl(source);
+  const parsed = serverEnvSchema.safeParse(appUrl ? { ...source, APP_URL: appUrl } : source);
   if (!parsed.success) {
     throw new ConfigError(parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`));
   }

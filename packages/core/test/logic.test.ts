@@ -175,4 +175,14 @@ describe("config", () => {
   it("requires https in production", () => {
     expect(() => loadServerEnv({ ...ok, NODE_ENV: "production" })).toThrow(/https/);
   });
+  it("falls back to Vercel's own URL when APP_URL is not set", () => {
+    const base = { AUTH_SECRET: ok.AUTH_SECRET, DATABASE_URL: ok.DATABASE_URL, NODE_ENV: "production" };
+    expect(loadServerEnv({ ...base, VERCEL_ENV: "production", VERCEL_PROJECT_PRODUCTION_URL: "sieveline.vercel.app", VERCEL_URL: "sieveline-abc.vercel.app" }).APP_URL)
+      .toBe("https://sieveline.vercel.app");
+    expect(loadServerEnv({ ...base, VERCEL_ENV: "preview", VERCEL_URL: "sieveline-abc.vercel.app" }).APP_URL).toBe("https://sieveline-abc.vercel.app");
+    // An explicit APP_URL always wins.
+    expect(loadServerEnv({ ...base, APP_URL: "https://sieveline.com", VERCEL_ENV: "production", VERCEL_PROJECT_PRODUCTION_URL: "x.vercel.app" }).APP_URL)
+      .toBe("https://sieveline.com");
+    expect(() => loadServerEnv(base)).toThrow(/APP_URL/);
+  });
 });

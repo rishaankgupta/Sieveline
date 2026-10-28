@@ -4,6 +4,7 @@ import type { Logger, ServerEnv } from "@sieveline/core";
 import { createWorkspaceForUser, schema, type AnyDb } from "@sieveline/db";
 import { betterAuth, type BetterAuthOptions } from "better-auth";
 import { APIError } from "better-auth/api";
+import { waitUntil } from "@vercel/functions";
 import { nextCookies } from "better-auth/next-js";
 import { captcha, haveIBeenPwned, twoFactor } from "better-auth/plugins";
 import { eq } from "drizzle-orm";
@@ -130,6 +131,9 @@ export function createAuth({ db, env, email, log, offline = false }: AuthDeps) {
       disableOriginCheck: false,
       disableCSRFCheck: false,
       cookiePrefix: "sl",
+      // Emails and cleanup run after the response; on Vercel they must be registered with
+      // waitUntil or the function can be frozen before they finish. Off Vercel it is a no-op.
+      backgroundTasks: { handler: waitUntil },
       ipAddress: { ipAddressHeaders: [env.CLIENT_IP_HEADER] },
       database: { generateId: () => crypto.randomUUID() },
     },
@@ -160,7 +164,10 @@ export function createAuth({ db, env, email, log, offline = false }: AuthDeps) {
     },
     logger: {
       level: production ? "error" : "warn",
-      log: (level, message) => log[level === "debug" ? "info" : level](`auth: ${message}`),
+      // Keep the error Better Auth passes along (the logger redacts secrets); without it a failure
+      // such as an email provider error shows up only as "Failed to run background task".
+      log: (level, message, ...args) =>
+        log[level === "debug" ? "info" : level](`auth: ${message}`, args[0] instanceof Error ? { err: args[0] } : {}),
     },
   });
 }

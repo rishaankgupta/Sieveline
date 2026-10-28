@@ -42,7 +42,25 @@ search fan-out with LLM query planning (templates first, operators stripped), Ma
 instructions and same-site page picking, Extract with query-ranked chunks and advanced retry only
 for failed URLs, news red-flag checks (succession treated as a signal), Crawl deep read for the top
 companies, and a per-call budget guard that refuses any call whose worst case exceeds the run's
-remaining reservation. Research (deep dives) is in the client and ships with the shortlist UI (M5-T05).
+remaining reservation.
+
+Deep dives (M5-T05) are implemented in `packages/core/src/research/deep-dive.ts` and
+`apps/web/src/workflows/deep-dive.ts`. What differs from the plan in the table above, and why:
+
+- **Polling, not streaming.** A durable workflow creates the task once and polls `GET /research/{id}` every 15 s
+  (up to 30 min). Sleeping costs nothing and survives redeploys; a held-open stream does not.
+- **No `exclude_domains`.** Directories (LinkedIn, ZoomInfo, RocketReach) are noise for finding companies but are
+  the main source of leadership and headcount in a dossier, so they are allowed here.
+- **One file**: `verified-facts.md` with our quote-checked facts.
+
+Facts measured against the live API on 2026-10-28:
+
+- `files[]` items are `{ name, data }` (base64). The docs' wording ("filename and its base64-encoded contents")
+  led to `{ filename, content }`, which returns HTTP 422 `Field required`. A rejected request creates no task.
+- `GET /research/{id}` reports credits only with the query parameter `include_usage=true`.
+- One real `mini` deep dive (allometrics.com): **84 credits**, about 80 s, 16 sources, all schema fields filled.
+  That is near the 110 upper bound and about 10x the whole 8-credit test list. Treat ~85 as typical until more
+  samples exist.
 
 ## Engineering rules
 
@@ -72,6 +90,6 @@ emails, private notes, chat messages, or uploaded private documents.
 | News checks | 25 × 2 searches | ~50 |
 | Crawl | 10 × ~30 pages | ~90 |
 | **Total before deep dives** | | **~340 credits ≈ $1.70–2.70** |
-| Each deep dive (Research mini) | | 4–110 credits |
+| Each deep dive (Research mini) | | 4–110 credits (1 real sample: 84) |
 
 These numbers are planning estimates, not measurements.

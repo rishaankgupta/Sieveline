@@ -13,3 +13,8 @@ minimumReleaseAgeExclude:
 overrides:
   # drizzle-kit pulls an old esbuild via @esbuild-kit (GHSA-67mh-4wv8-2f99, dev-only).
   "@esbuild-kit/core-utils>esbuild": "^0.25.0"
+  # undici <7.30.1: TLS validation bypass, cross-origin cache poisoning, DoS (GHSA-2m5v-pch6-74hx,
+  # GHSA-4w7w-5xrc-9h26, GHSA-xjj6-f33q-929c, GHSA-qrxm-fqhp-jwvm). Runtime path via the AI SDK.
+  "undici@>=7.0.0 <7.30.1": "^7.30.1"
+  # zod <4.6.6: memory exhaustion on oversized collections (GHSA-mrhx-c7xc-m3w5). Via the Vercel CLI config.
+  "zod@>=4.0.0 <4.6.6": "^4.6.6"
