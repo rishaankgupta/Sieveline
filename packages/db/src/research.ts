@@ -41,7 +41,7 @@ function monthStart(d = new Date()): Date {
 }
 
 export async function platformCreditsToday(db: AnyDb): Promise<number> {
-  const r = await db.execute(sql`select platform_tavily_credits_today() as n`);
+  const r = await db.execute(sql`select reporting.platform_tavily_credits_today() as n`);
   return num(rowsOf<{ n: string }>(r)[0]?.n);
 }
 

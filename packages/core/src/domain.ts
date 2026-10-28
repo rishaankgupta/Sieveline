@@ -5,7 +5,8 @@ export const DIRECTORY_DOMAINS: readonly string[] = [
   "dnb.com", "bloomberg.com", "crunchbase.com", "indeed.com", "glassdoor.com",
   "ziprecruiter.com", "reddit.com", "wikipedia.org", "amazon.com", "google.com",
   "thomasnet.com", "angi.com", "chamberofcommerce.com", "buzzfile.com", "opencorporates.com",
-  "bizapedia.com", "pitchbook.com", "a2la.org", "nist.gov",
+  "bizapedia.com", "pitchbook.com", "a2la.org", "nist.gov", "iqsdirectory.com", "wemakeithere.org",
+  "globalspec.com", "kompass.com", "industrynet.com", "mfg.com", "made-in-china.com", "alibaba.com",
 ];
 
 const PRIVATE_HOST =
@@ -29,6 +30,19 @@ export function toDomain(input: string): string | null {
   if (PRIVATE_HOST.test(host)) return null;
   if (!/^(?=.{3,253}$)([a-z0-9-]+\.)+[a-z]{2,}$/.test(host)) return null;
   return host;
+}
+
+/** "trescal.com" -> "trescal": the brand label, used to block a competitor's other country sites. */
+export function brandLabel(domain: string): string {
+  const parts = domain.split(".");
+  const tld2 = parts.length > 2 && /^(co|com|org|net|ac|gov)$/.test(parts[parts.length - 2]!);
+  return parts[parts.length - (tld2 ? 3 : 2)] ?? domain;
+}
+
+export function isBlockedBrand(domain: string, brands: Iterable<string>): boolean {
+  const label = brandLabel(domain);
+  for (const b of brands) if (label === brandLabel(b)) return true;
+  return false;
 }
 
 export function isBlocked(domain: string, blocked: Iterable<string>): boolean {

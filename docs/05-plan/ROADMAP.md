@@ -19,7 +19,7 @@ Each milestone ends with a **gate**: its checks must pass before the next milest
 | M0-T02 | Owner decisions D1–D4 | S | done (D4 deferred to M3) | Recorded in DECISIONS-NEEDED |
 | M0-T03 | Update plan for shortlist + Advisor chat, Vercel + Neon, full Tavily strategy | S | done | ADR-0004, ADR-0005, TAVILY-STRATEGY.md |
 | M0-T05 | Plan admin panel and Cloudflare role | S | done | ADMIN.md, ADR-0006 |
-| M0-T04 | Git remote (GitHub repo) and push | S | blocked (owner, D9) | Repo URL in README |
+| M0-T04 | Git remote (GitHub repo) and push | S | in progress (remote added: github.com/rishaankgupta/Sieveline; first push awaits owner OK) | Repo URL in README |
 
 **Gate:** owner confirms the name (D1) and the updated plan.
 
@@ -30,7 +30,7 @@ Each milestone ends with a **gate**: its checks must pass before the next milest
 | M1-T01 | Monorepo: `apps/web`, `packages/core`, `packages/db`; pnpm workspaces | S | done | `pnpm install` and `pnpm build` succeed |
 | M1-T02 | Lint, format, strict TypeScript, commit hooks | S | done (lint + strict types; commit hooks deferred) | `pnpm check` passes on clean repo |
 | M1-T03 | Env config with Zod validation; app refuses to start with missing secrets | S | done | Unit test covers missing/invalid vars |
-| M1-T04 | Neon project: main + dev branches; preview deploys get their own branch | S | blocked (owner: Neon account) | Migrations run on a fresh branch |
+| M1-T04 | Neon project: main + dev branches; preview deploys get their own branch | S | done (Neon migrated; least-privilege app and admin login roles; RLS verified live) | Migrations run on a fresh branch |
 | M1-T05 | Schema + migrations for all tables in ARCHITECTURE §4 | M | done | Migrations apply and roll back |
 | M1-T06 | Row-level security + workspace context per request | M | done | Query without workspace context returns nothing |
 | M1-T07 | Structured logging, error tracking, request ids | S | in progress (redacting JSON logger done; Sentry needs a free account) | Errors arrive with request id, no secrets |
@@ -66,7 +66,7 @@ Each milestone ends with a **gate**: its checks must pass before the next milest
 | M3-T07 | Pipeline stages 1–12 as Workflow steps; batching; resume; watchdog | L | in progress (stages as durable steps, early stop on credits, end-to-end test done; stuck-run watchdog next) | Kill mid-run → resumes and finishes |
 | M3-T08 | Red-flag news checks and Crawl deep read for top candidates | M | done | Flags appear with dates and links |
 | M3-T09 | Seed CSV import with validation and limits | S | in progress (API accepts a validated seed domain list; CSV upload UI in M4) | Bad files rejected with clear errors |
-| M3-T10 | **Real-data spike (needs Tavily + LLM keys):** calibration labs | M | blocked (keys) | Report: text rate, accuracy on 50 hand-checked rows, credits per stage, time |
+| M3-T10 | **Real-data spike (needs Tavily + LLM keys):** calibration labs | M | in progress (part 1 done without LLM: 97% readable sites, 14/14 founded years correct; LLM part needs a key) | Report: text rate, accuracy on 50 hand-checked rows, credits per stage, time |
 
 **Gate:** real-data report meets QUALITY.md §5, or a written decision on what to change.
 

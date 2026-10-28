@@ -17,6 +17,7 @@ function normalizeUrl(u: string): string | null {
     if (url.protocol !== "https:" && url.protocol !== "http:") return null;
     url.hash = "";
     url.search = "";
+    url.hostname = url.hostname.replace(/^www\./, "");
     return url.toString().replace(/\/$/, "");
   } catch {
     return null;

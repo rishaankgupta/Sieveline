@@ -9,6 +9,25 @@ const OWNERSHIP_RE =
 const PARENT_RE =
   /\b(?:a portfolio company of|portfolio company|is now part of|now a part of|a subsidiary of|a division of|acquired by|joined the [A-Z][\w&.\- ]{2,40} (?:family|group|network)|backed by [A-Z][\w&.\- ]{2,40}(?:capital|partners|equity))/gi;
 
+const RELATION =
+  /\b(part of|powered by|backed by|member of|acquired by|joined|subsidiary of|division of|a [\w&.\- ]{0,30} company|family of companies|brand of|owned by)\b/i;
+
+/**
+ * Finds a named owner/consolidator only when it is written as a proper name (exact case) AND a
+ * relationship phrase is next to it. Real data showed why: "Accredited Labs" (a consolidator) is
+ * also everyday wording ("our accredited labs"), which produced false flags on independent shops.
+ */
+export function namedOwnerMention(text: string, name: string): string | null {
+  let from = 0;
+  for (;;) {
+    const idx = text.indexOf(name, from);
+    if (idx < 0) return null;
+    const window = text.slice(Math.max(0, idx - 60), idx + name.length + 40);
+    if (RELATION.test(window)) return contextAround(text, idx, idx + name.length);
+    from = idx + name.length;
+  }
+}
+
 export interface Signals {
   foundedYear: number | null;
   foundedEvidence: string | null;
@@ -41,10 +60,9 @@ export function findSignals(
   const ownershipEvidence = own ? contextAround(text, own.index, own.index + own[0].length) : null;
 
   const parentFlags: string[] = [];
-  const lower = text.toLowerCase();
   for (const name of options.excludeIfMentions ?? []) {
-    const idx = lower.indexOf(name.toLowerCase());
-    if (idx >= 0) parentFlags.push(contextAround(text, idx, idx + name.length));
+    const hit = namedOwnerMention(text, name);
+    if (hit) parentFlags.push(hit);
   }
   for (const m of text.matchAll(PARENT_RE)) {
     if (parentFlags.length >= 3) break;

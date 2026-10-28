@@ -16,17 +16,23 @@ GRANT SELECT ON usage_events, settings TO sieveline_reporter;
 --> statement-breakpoint
 CREATE POLICY reporter_read ON usage_events FOR SELECT TO sieveline_reporter USING (true);
 --> statement-breakpoint
-CREATE OR REPLACE FUNCTION platform_tavily_credits_today() RETURNS numeric
+-- The function lives in its own schema owned by the reporter role, so the reporter needs no
+-- CREATE right on public (Neon, PG15+: owning a function requires CREATE on its schema).
+CREATE SCHEMA IF NOT EXISTS reporting AUTHORIZATION sieveline_reporter;
+--> statement-breakpoint
+GRANT USAGE ON SCHEMA reporting TO sieveline_app, sieveline_admin;
+--> statement-breakpoint
+CREATE OR REPLACE FUNCTION reporting.platform_tavily_credits_today() RETURNS numeric
   LANGUAGE sql STABLE SECURITY DEFINER SET search_path = pg_catalog, public AS $$
   SELECT coalesce(sum(credits), 0) FROM public.usage_events
   WHERE provider = 'tavily' AND created_at >= date_trunc('day', now() AT TIME ZONE 'utc') AT TIME ZONE 'utc'
 $$;
 --> statement-breakpoint
-ALTER FUNCTION platform_tavily_credits_today() OWNER TO sieveline_reporter;
+ALTER FUNCTION reporting.platform_tavily_credits_today() OWNER TO sieveline_reporter;
 --> statement-breakpoint
-REVOKE ALL ON FUNCTION platform_tavily_credits_today() FROM PUBLIC;
+REVOKE ALL ON FUNCTION reporting.platform_tavily_credits_today() FROM PUBLIC;
 --> statement-breakpoint
-GRANT EXECUTE ON FUNCTION platform_tavily_credits_today() TO sieveline_app, sieveline_admin;
+GRANT EXECUTE ON FUNCTION reporting.platform_tavily_credits_today() TO sieveline_app, sieveline_admin;
 --> statement-breakpoint
 -- Admin kill switch: research is paused platform-wide while this is true.
 INSERT INTO settings (key, value, version, active, note)

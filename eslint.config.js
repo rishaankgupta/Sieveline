@@ -18,4 +18,9 @@ export default tseslint.config(
       eqeqeq: ["error", "always"],
     },
   },
+  {
+    // Command-line scripts print their results.
+    files: ["**/scripts/**/*.ts"],
+    rules: { "no-console": "off" },
+  },
 );

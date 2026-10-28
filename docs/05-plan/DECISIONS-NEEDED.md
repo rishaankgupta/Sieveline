@@ -12,7 +12,7 @@ Last updated: 2026-10-28
 | D11 | Accounts | Owner has Vercel and Neon; also has Cloudflare. Role of Cloudflare proposed in ADR-0006 | 2026-10-28 |
 | D12 | Admin panel | Manage everything from one panel (`docs/07-admin/ADMIN.md`) | 2026-10-28 |
 | D15 | Hosting cost | Free tiers only: GitHub Student Pack domain, free Vercel / Neon / Cloudflare plans. Code stays within free limits (each research step under 300 s) | 2026-10-28 |
-| D4 | LLM provider | Deferred; owner will decide when providing the Tavily key. Built provider-agnostic | 2026-10-28 |
+| D4 | LLM provider | Still open. Neon AI Gateway was offered but every model there needs a paid Neon plan (checked 2026-10-28). Built provider-agnostic | 2026-10-28 |
 
 ### D1 notes: name check for "Sieveline"
 - Meaning: a sieve keeps only what's worth keeping; "line" is the buyer's deal pipeline.
@@ -31,7 +31,7 @@ Last updated: 2026-10-28
 | D6 | Stripe account and business country? | Stripe test mode only | M6 |
 | D7 | Email provider and sender address? | Resend in dev mode | M2-T02 (real sending by M8) |
 | D8 | Brand colors / logo / design references? | Neutral design | M4-T01 |
-| D9 | GitHub repo to push to (owner/name)? Owner has one, will connect later | Local Git only | M0-T04 |
+| D9 | GitHub repo: rishaankgupta/Sieveline (public, empty). Remote added; first push to `main` awaits owner OK | Local Git only | M0-T04 |
 | D10 | External penetration test before launch? | No; ASVS review + ZAP scan | M7 |
 | D13 | Approve Cloudflare role (ADR-0006, option C)? | Option C | M8 |
 | D14 | Give access: Vercel team, Neon project, Cloudflare account (invite or API tokens with least privilege) | Local development until then | M1-T04 |

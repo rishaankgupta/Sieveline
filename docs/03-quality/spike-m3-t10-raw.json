@@ -1,0 +1,453 @@
+{
+  "ranAt": "2026-10-28T12:54:53.239Z",
+  "creditCap": 200,
+  "creditsSpent": 89,
+  "stoppedEarly": false,
+  "byEndpoint": {
+    "search": {
+      "calls": 8,
+      "credits": 8
+    },
+    "map": {
+      "calls": 30,
+      "credits": 67
+    },
+    "extract": {
+      "calls": 5,
+      "credits": 14
+    }
+  },
+  "seconds": {
+    "discover": 5,
+    "read": 81
+  },
+  "queries": [
+    "ISO 17025 accredited calibration laboratory Texas",
+    "ISO 17025 accredited calibration laboratory Ohio",
+    "ISO 17025 accredited calibration laboratory Pennsylvania",
+    "ISO 17025 accredited calibration laboratory Michigan",
+    "ISO 17025 accredited calibration laboratory North Carolina",
+    "independent calibration services company Texas",
+    "independent calibration services company Ohio",
+    "independent calibration services company Pennsylvania"
+  ],
+  "companies": 30,
+  "websiteTextRate": 97,
+  "foundedYearRate": 47,
+  "ownershipWordsRate": 17,
+  "parentFlagRate": 33,
+  "mentionsCalibrationRate": 80,
+  "mentions17025Rate": 77,
+  "rows": [
+    {
+      "domain": "avi-go.com",
+      "name": "Avi Go",
+      "foundBy": "ISO 17025 accredited calibration laboratory North Carolina",
+      "pages": 2,
+      "chars": 6658,
+      "founded": null,
+      "foundedEvidence": null,
+      "ownership": null,
+      "parentFlags": [],
+      "mentionsCalibration": false,
+      "mentions17025": false
+    },
+    {
+      "domain": "allometrics.com",
+      "name": "ISO 17025 Calibration Laboratory Houston [50+ Years Experience]",
+      "foundBy": "ISO 17025 accredited calibration laboratory Texas",
+      "pages": 2,
+      "chars": 6092,
+      "founded": 1976,
+      "foundedEvidence": "requirements and documentation standards your industry demands. 50+ Years of Precision Testing & Calibration Excellence Since 1976, Allometrics has provided calibration and controlled environment services to companies that depend on accurate measurem",
+      "ownership": "ation reports and catalogue your equipment in our instrument certification database. Since 1976, Allometrics has been a family-owned business committed to providing the highest quality products and service at competitive prices. Why Allometrics? Our go",
+      "parentFlags": [],
+      "mentionsCalibration": true,
+      "mentions17025": true
+    },
+    {
+      "domain": "jmtest.com",
+      "name": "Houston Calibration Lab Services",
+      "foundBy": "ISO 17025 accredited calibration laboratory Texas",
+      "pages": 3,
+      "chars": 7706,
+      "founded": 1982,
+      "foundedEvidence": "you our lastest catalog to the mailing address you enter below. LOCATION AND SERVICE OVERVIEW JM Test Systems, LLC was founded in 1982 to provide quality and expedient service to industries that need repair and traceable calibration of test and measureme",
+      "ownership": null,
+      "parentFlags": [
+        "ypes Get A Quick Quote In House Calibration JM Test Systems provides calibration services for many industries. Our many accredited labs located around the USA will provide top quality service within our promised turnaround time. View More On-Site Calibrat"
+      ],
+      "mentionsCalibration": true,
+      "mentions17025": true
+    },
+    {
+      "domain": "tmicalibration.com",
+      "name": "Ohio (Full Service Lab)",
+      "foundBy": "ISO 17025 accredited calibration laboratory Ohio",
+      "pages": 2,
+      "chars": 5963,
+      "founded": null,
+      "foundedEvidence": null,
+      "ownership": null,
+      "parentFlags": [],
+      "mentionsCalibration": true,
+      "mentions17025": true
+    },
+    {
+      "domain": "accredisource.com",
+      "name": "Trescal, Inc.",
+      "foundBy": "ISO 17025 accredited calibration laboratory Pennsylvania",
+      "pages": 1,
+      "chars": 676,
+      "founded": null,
+      "foundedEvidence": null,
+      "ownership": null,
+      "parentFlags": [],
+      "mentionsCalibration": true,
+      "mentions17025": true
+    },
+    {
+      "domain": "massflowtechsolutions.com",
+      "name": "Mass Flow Calibration Lab",
+      "foundBy": "ISO 17025 accredited calibration laboratory Texas",
+      "pages": 1,
+      "chars": 3094,
+      "founded": 1994,
+      "foundedEvidence": "Baytown, Texas with over 30 years of flow meter calibration and service expertise Over 30 Years of Industry Excellence. Founded in 1994, Mass Flow Technology was among the first independent flow meter calibration labs in the U.S., built on a commitment to",
+      "ownership": null,
+      "parentFlags": [],
+      "mentionsCalibration": true,
+      "mentions17025": true
+    },
+    {
+      "domain": "instrumentcs.com",
+      "name": "Accreditation Compliance Standards & Traceability",
+      "foundBy": "ISO 17025 accredited calibration laboratory Ohio",
+      "pages": 0,
+      "chars": 0,
+      "founded": null,
+      "foundedEvidence": null,
+      "ownership": null,
+      "parentFlags": [],
+      "mentionsCalibration": false,
+      "mentions17025": false
+    },
+    {
+      "domain": "microprecision.com",
+      "name": "Best Calibration Services Labs in Texas",
+      "foundBy": "ISO 17025 accredited calibration laboratory Texas",
+      "pages": 1,
+      "chars": 3760,
+      "founded": null,
+      "foundedEvidence": null,
+      "ownership": null,
+      "parentFlags": [
+        "ic & Chemical RF & Microwave Mechanical & Dimensional Laboratory Standards [...] More than 3000 customers every year Accredited Labs More than 50 labs ISO/IEC 17025:2017 accredited Trained Professionals 1000+ trained professionals staffed Industry Expe"
+      ],
+      "mentionsCalibration": true,
+      "mentions17025": true
+    },
+    {
+      "domain": "fcxperformance.com",
+      "name": "Metrology Laboratory Services",
+      "foundBy": "ISO 17025 accredited calibration laboratory North Carolina",
+      "pages": 1,
+      "chars": 3411,
+      "founded": null,
+      "foundedEvidence": null,
+      "ownership": null,
+      "parentFlags": [],
+      "mentionsCalibration": true,
+      "mentions17025": false
+    },
+    {
+      "domain": "ocscal.com",
+      "name": "ISO 17025 Accredited Calibration Services",
+      "foundBy": "ISO 17025 accredited calibration laboratory Ohio",
+      "pages": 3,
+      "chars": 8917,
+      "founded": 1930,
+      "foundedEvidence": "on and fourth-generation family business, we’ve always had a special pride and respect for our company history. OCS was founded in 1930 by a technician who rebuilt a scale business in the midst of the Great Depression. That scale technician was the grandf",
+      "ownership": null,
+      "parentFlags": [
+        "National Expertise Your trusted partner for accuracy, compliance, and efficiency. Here’s what sets us apart: Powered by Accredited Labs Backed by Accredited Labs, we deliver top-tier calibration services aligned with national standards of excellence. Cust"
+      ],
+      "mentionsCalibration": true,
+      "mentions17025": true
+    },
+    {
+      "domain": "techmaster.us",
+      "name": "San Antonio Calibration Lab",
+      "foundBy": "ISO 17025 accredited calibration laboratory Texas",
+      "pages": 3,
+      "chars": 10423,
+      "founded": 1989,
+      "foundedEvidence": "America’s Trusted Test Equipment Calibration Laboratory Since 1989, Techmaster Electronics has been the recognized leader in accredited test equipment calibration, repair, and environmen",
+      "ownership": "es & Rentals, Environmental Testing, Healthcare RTLS NIST Certification Contact: +1-866-779-5695 · sales@techmaster.us Veteran owned since 1989 Techmaster Electronics was established in Reseda, CA in 1989 as a multi-faceted Test and Measurement company",
+      "parentFlags": [
+        "master.us. Techmaster is an ISO/IEC 17025 accredited calibration laboratory (ANAB cert AC-1736) with four ISO/IEC 17025 accredited labs in Vista CA, Santa Clara CA, Orlando FL, and San Antonio TX (plus a Holly Springs NC location), plus a corporate office"
+      ],
+      "mentionsCalibration": true,
+      "mentions17025": true
+    },
+    {
+      "domain": "foxvalleymetrology.com",
+      "name": "Texas ISO 17025 Calibration Services",
+      "foundBy": "ISO 17025 accredited calibration laboratory Texas",
+      "pages": 3,
+      "chars": 11167,
+      "founded": 1996,
+      "foundedEvidence": "+ FAQ + Features + Training + Tutorials + Request a Demo Training Quality About History History Trusted Calibrations Since 1996 Since our founding in 1996, Fox Valley Metrology has been committed to providing the highest quality calibration servic",
+      "ownership": null,
+      "parentFlags": [],
+      "mentionsCalibration": true,
+      "mentions17025": true
+    },
+    {
+      "domain": "iqsdirectory.com",
+      "name": "Cal Tec Labs Incorporated",
+      "foundBy": "ISO 17025 accredited calibration laboratory Pennsylvania",
+      "pages": 4,
+      "chars": 10000,
+      "founded": null,
+      "foundedEvidence": null,
+      "ownership": null,
+      "parentFlags": [],
+      "mentionsCalibration": false,
+      "mentions17025": false
+    },
+    {
+      "domain": "constellationpowerlabs.com",
+      "name": "Leading Testing & Calibration Lab in Philadelphia, PA| Free Quote",
+      "foundBy": "ISO 17025 accredited calibration laboratory Pennsylvania",
+      "pages": 1,
+      "chars": 3104,
+      "founded": null,
+      "foundedEvidence": null,
+      "ownership": null,
+      "parentFlags": [],
+      "mentionsCalibration": true,
+      "mentions17025": true
+    },
+    {
+      "domain": "cal-cert.com",
+      "name": "Calibration Services in Emlenton, PA",
+      "foundBy": "ISO 17025 accredited calibration laboratory Pennsylvania",
+      "pages": 3,
+      "chars": 10301,
+      "founded": 1976,
+      "foundedEvidence": "rocedures, and state of the art equipment. Our Service is your Solution! We Are the Leaders in the Industry In business since 1976, we're Members of several ASTM Committees, participate in proficiency tests for all disciplines and are ISO/IEC 17025 A",
+      "ownership": null,
+      "parentFlags": [
+        "upport Cal-Cert is your go-to partner for accuracy, compliance, and efficiency. Here’s what makes us unique: Powered by Accredited Labs Accredited Labs provides Cal-Cert with the resources to bring top-tier calibration services, backed by a national stand"
+      ],
+      "mentionsCalibration": true,
+      "mentions17025": true
+    },
+    {
+      "domain": "micronpa.com",
+      "name": "MicronPA: Accredited Calibration & Testing Services",
+      "foundBy": "ISO 17025 accredited calibration laboratory Pennsylvania",
+      "pages": 3,
+      "chars": 10499,
+      "founded": null,
+      "foundedEvidence": null,
+      "ownership": null,
+      "parentFlags": [
+        "540.1 calibration lab are not identical. Both standards stress the need for technician competence and ongoing training. Accredited labs must employ repeatable processes that can be scaled upwards as demand requires. ISO/IEC 17025, however, is internationa"
+      ],
+      "mentionsCalibration": true,
+      "mentions17025": true
+    },
+    {
+      "domain": "aldingerco.com",
+      "name": "Calibration Services in Houston, TX",
+      "foundBy": "ISO 17025 accredited calibration laboratory Texas",
+      "pages": 3,
+      "chars": 9031,
+      "founded": null,
+      "foundedEvidence": null,
+      "ownership": null,
+      "parentFlags": [
+        "n ISO/IEC 17025 accredited pipette calibration for labs, research, and healthcare settings. [...] Reliable As a part of Accredited Labs, Aldinger customers get the personal touch of a local team, backed by a national network. Experienced Our service speci"
+      ],
+      "mentionsCalibration": true,
+      "mentions17025": true
+    },
+    {
+      "domain": "accuracal.com",
+      "name": "Fort Worth ISO 17025 Accredited Calibration",
+      "foundBy": "ISO 17025 accredited calibration laboratory Texas",
+      "pages": 3,
+      "chars": 7945,
+      "founded": null,
+      "foundedEvidence": null,
+      "ownership": "libration Services Welcome to Accura Calibration, a premier provider of instrument calibration services nationwide. Our veteran-owned small business is dedicated to meeting your specific calibration needs with quality, value, and precision. Accura Calib",
+      "parentFlags": [],
+      "mentionsCalibration": true,
+      "mentions17025": true
+    },
+    {
+      "domain": "tra-cal.com",
+      "name": "ISO 17025 Calibration Services in Waco, TX",
+      "foundBy": "ISO 17025 accredited calibration laboratory Texas",
+      "pages": 4,
+      "chars": 11975,
+      "founded": null,
+      "foundedEvidence": null,
+      "ownership": "Tra-Cal Lab 8577 Atlas Drive Gaithersburg, MD 20877 Phone: 301-527-9200 Email: info@tra-cal.com Service-Disabled Veteran-Owned Small Business (SDVOSB) View Certificate of Accreditation CAGE CODE: 9RW47 NAICS: 333997; 334513; 334118; 334511; 33451",
+      "parentFlags": [],
+      "mentionsCalibration": true,
+      "mentions17025": true
+    },
+    {
+      "domain": "qualcal-metrology.com",
+      "name": "QualCal Metrology",
+      "foundBy": "ISO 17025 accredited calibration laboratory Texas",
+      "pages": 1,
+      "chars": 3188,
+      "founded": null,
+      "foundedEvidence": null,
+      "ownership": null,
+      "parentFlags": [],
+      "mentionsCalibration": true,
+      "mentions17025": true
+    },
+    {
+      "domain": "q-lab.com",
+      "name": "Accreditations",
+      "foundBy": "ISO 17025 accredited calibration laboratory Ohio",
+      "pages": 3,
+      "chars": 8427,
+      "founded": 1956,
+      "foundedEvidence": "ubstrate Q-PANEL® aluminum and steel panels have been the world’s most recognizable and widely-used standard substrates since 1956. These consistent, clean, convenient, and cost-effective test substrates are essential to paints, automotive, buildin",
+      "ownership": null,
+      "parentFlags": [],
+      "mentionsCalibration": true,
+      "mentions17025": true
+    },
+    {
+      "domain": "ntscales.com",
+      "name": "Calibration",
+      "foundBy": "ISO 17025 accredited calibration laboratory Texas",
+      "pages": 4,
+      "chars": 14797,
+      "founded": 1966,
+      "foundedEvidence": "shopping\\_cart Scale Sales Authorized Dealer Since 1966 Industrial scales from leading manufacturers including Rice Lake, Avery Weigh-Tronix, and more. Learn Morearrow\\_right\\",
+      "ownership": "to national standards maintained by the National Institute of Standards and Technology. family\\_restroom 3rd Generation Family Owned Founded in 1966, North Texas Scales has been family-owned for three generations — building long-term relationships, not",
+      "parentFlags": [],
+      "mentionsCalibration": true,
+      "mentions17025": true
+    },
+    {
+      "domain": "sensors-inc.com",
+      "name": "Sensors attained ISO/IEC 17025:2017 accreditation.",
+      "foundBy": "ISO 17025 accredited calibration laboratory Michigan",
+      "pages": 1,
+      "chars": 2833,
+      "founded": null,
+      "foundedEvidence": null,
+      "ownership": null,
+      "parentFlags": [],
+      "mentionsCalibration": false,
+      "mentions17025": false
+    },
+    {
+      "domain": "techcal.com",
+      "name": "Calibration Services Houston",
+      "foundBy": "ISO 17025 accredited calibration laboratory Texas",
+      "pages": 2,
+      "chars": 6022,
+      "founded": 1984,
+      "foundedEvidence": "s and false negatives or false positives can be the results from uncalibrated test equipment. Learn More About Tech Cal Established in 1984 At Tech Cal, we pride ourselves on outstanding customer service, proven products and ethical practices. It is our missi",
+      "ownership": null,
+      "parentFlags": [],
+      "mentionsCalibration": true,
+      "mentions17025": true
+    },
+    {
+      "domain": "cech.com",
+      "name": "ISO 17025 Accredited Calibration Michigan",
+      "foundBy": "ISO 17025 accredited calibration laboratory Michigan",
+      "pages": 4,
+      "chars": 13058,
+      "founded": 1936,
+      "foundedEvidence": "itoring Custom automation and weighing systems Preventive maintenance programs Trusted by industries across Michigan since 1936 Accreditations & ISO Cech is accredited in accordance with ISO/IEC 17025:2017 through Perry Johnson Laboratory Accredit",
+      "ownership": null,
+      "parentFlags": [],
+      "mentionsCalibration": true,
+      "mentions17025": true
+    },
+    {
+      "domain": "supplychain.wemakeithere.org",
+      "name": "Cleveland Electric Laboratories",
+      "foundBy": "ISO 17025 accredited calibration laboratory Ohio",
+      "pages": 1,
+      "chars": 1971,
+      "founded": null,
+      "foundedEvidence": null,
+      "ownership": null,
+      "parentFlags": [],
+      "mentionsCalibration": false,
+      "mentions17025": false
+    },
+    {
+      "domain": "labtesting.com",
+      "name": "Calibration Lab & Metrology Services",
+      "foundBy": "ISO 17025 accredited calibration laboratory Pennsylvania",
+      "pages": 3,
+      "chars": 10562,
+      "founded": 1984,
+      "foundedEvidence": "ccredited, independent testing laboratory and calibration company located in the suburbs of Philadelphia, Pennsylvania. Since 1984, customers worldwide have counted on LTI for accurate and affordable material testing lab services. Purpose Delivering",
+      "ownership": null,
+      "parentFlags": [
+        "ly-led leadership. Maintained a strong commitment to quality, innovation, and customer satisfaction. In 2025, LTI was acquired by Kanbrick in partnership with the McVaugh and Hiller families to support continued growth and investment in the business"
+      ],
+      "mentionsCalibration": true,
+      "mentions17025": true
+    },
+    {
+      "domain": "trescal.dk",
+      "name": "Expert calibration lab in Cincinnati, Ohio",
+      "foundBy": "ISO 17025 accredited calibration laboratory Ohio",
+      "pages": 1,
+      "chars": 2570,
+      "founded": null,
+      "foundedEvidence": null,
+      "ownership": null,
+      "parentFlags": [
+        "Kontakt Om + Trescal-koncernen + Innovationer + Vores engagement Serviceydelser + Akkrediteringer + Kalibrering + Reparation og vedligehold"
+      ],
+      "mentionsCalibration": false,
+      "mentions17025": false
+    },
+    {
+      "domain": "emlcalibration.com",
+      "name": "ISO 17025 Calibration Michigan",
+      "foundBy": "ISO 17025 accredited calibration laboratory Michigan",
+      "pages": 2,
+      "chars": 6737,
+      "founded": 1997,
+      "foundedEvidence": "in Committed to Excellence Providing our customers an unfaltering commitment to service and calibration. Doing business since 1997 Our 28th Year Anniversary Cheers to 28 years! Here’s to many more years of building confidence with our customers, asso",
+      "ownership": null,
+      "parentFlags": [],
+      "mentionsCalibration": true,
+      "mentions17025": true
+    },
+    {
+      "domain": "michelli.com",
+      "name": "Houston Calibration Lab Now Open",
+      "foundBy": "ISO 17025 accredited calibration laboratory Texas",
+      "pages": 3,
+      "chars": 11264,
+      "founded": 1947,
+      "foundedEvidence": "ers | TRAC | Call Email Careers TRAC Get a Quote Get a Quote Get a Quote Your Full-Stack Weighing & Measurement Partner since 1947 ISO 9001 Registered ISO 17025 Accredited Calibration, service, equipment, and custom measurement solutions for industri",
+      "ownership": null,
+      "parentFlags": [
+        "Local teams across the country 350+ Team Members Technical, service, and support teams ISO 9001 / 17025 Registered with accredited labs 18 States Strategic support across the country More Than a Scale Company Related Quality and Calibration Resources Lea"
+      ],
+      "mentionsCalibration": true,
+      "mentions17025": true
+    }
+  ]
+}

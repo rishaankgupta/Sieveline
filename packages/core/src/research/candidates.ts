@@ -1,4 +1,4 @@
-import { DIRECTORY_DOMAINS, isBlocked, toDomain } from "../domain.ts";
+import { DIRECTORY_DOMAINS, isBlocked, isBlockedBrand, toDomain } from "../domain.ts";
 import type { Thesis } from "../thesis.ts";
 import type { SearchResult } from "../tavily/types.ts";
 
@@ -31,12 +31,14 @@ export function collectCandidates(
   batches: { query: string; results: SearchResult[] }[],
   blocked: readonly string[],
   existing: readonly Candidate[] = [],
+  /** Buyer-excluded competitors: also blocks their sites in other countries (trescal.com -> trescal.dk). */
+  blockedBrands: readonly string[] = [],
 ): Candidate[] {
   const byDomain = new Map(existing.map((c) => [c.domain, { ...c }]));
   for (const { query, results } of batches) {
     for (const r of results) {
       const domain = toDomain(r.url);
-      if (!domain || isBlocked(domain, blocked)) continue;
+      if (!domain || isBlocked(domain, blocked) || isBlockedBrand(domain, blockedBrands)) continue;
       const score = typeof r.score === "number" ? r.score : 0;
       const prev = byDomain.get(domain);
       if (prev) {

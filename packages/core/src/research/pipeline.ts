@@ -65,7 +65,7 @@ export async function stageDiscover(
     });
     return { query, results: res.results };
   });
-  const candidates = capCandidates(collectCandidates(batches, blocked, seeds), s.maxCandidates);
+  const candidates = capCandidates(collectCandidates(batches, blocked, seeds, thesis.excludeDomains), s.maxCandidates);
   return { queries, candidates, llmCostUsd: costUsd };
 }
 
