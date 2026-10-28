@@ -1,5 +1,5 @@
 import { Forbidden } from "@sieveline/core";
-import { InsufficientCredits, MembershipRuleError, ResearchPaused } from "@sieveline/db";
+import { AdminRuleError, InsufficientCredits, MembershipRuleError, ResearchPaused } from "@sieveline/db";
 import { ZodError } from "zod";
 import { logger } from "./context";
 import { Unauthorized } from "./session";
@@ -30,9 +30,12 @@ export async function readJson(request: Request): Promise<unknown> {
 
 export class HttpError extends Error {
   readonly status: number;
-  constructor(status: number, message: string) {
+  /** Machine-readable reason the client can act on (e.g. "step_up_required"). */
+  readonly code: string | undefined;
+  constructor(status: number, message: string, code?: string) {
     super(message);
     this.status = status;
+    this.code = code;
   }
 }
 
@@ -49,7 +52,8 @@ export async function handle(fn: () => Promise<Response>): Promise<Response> {
     if (e instanceof InsufficientCredits) return json(402, e.message, { available: e.available, needed: e.needed });
     if (e instanceof MembershipRuleError) return json(409, e.message, { reason: e.reason });
     if (e instanceof ResearchPaused) return json(503, "Research is paused right now. Please try again later.");
-    if (e instanceof HttpError) return json(e.status, e.message);
+    if (e instanceof AdminRuleError) return json(409, e.message);
+    if (e instanceof HttpError) return json(e.status, e.message, e.code ? { code: e.code } : {});
     logger.error("unhandled api error", { err: e });
     return json(500, "Something went wrong");
   }

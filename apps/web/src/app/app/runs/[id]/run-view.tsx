@@ -10,7 +10,7 @@ import type { Company, Results, RunStatus } from "./types";
 
 const POLL_MS = 4000;
 
-export function RunView({ runId, name, advisorEnabled }: { runId: string; name: string; advisorEnabled: boolean }) {
+export function RunView({ runId, name, advisorEnabled, canCancel }: { runId: string; name: string; advisorEnabled: boolean; canCancel: boolean }) {
   const [status, setStatus] = useState<RunStatus | null>(null);
   const [results, setResults] = useState<Results | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -102,6 +102,7 @@ export function RunView({ runId, name, advisorEnabled }: { runId: string; name: 
           </ol>
         )}
         <p className="mt-6 text-sm text-[var(--color-muted)]">You can leave this page. The research keeps going, and the list will be here when it&apos;s ready.</p>
+        {canCancel && (status.status === "queued" || status.status === "running") && <CancelRun runId={runId} />}
       </div>
     );
   }
@@ -192,6 +193,29 @@ export function RunView({ runId, name, advisorEnabled }: { runId: string; name: 
         <EvidenceDialog company={openCompany} results={results} focusFactId={open?.factId} onClose={() => setOpen(null)}
           onReview={(review) => patchCompany(openCompany.id, { review })} />
       )}
+    </div>
+  );
+}
+
+/** Stops the research. Credits already used stay charged; the rest of the hold is released. */
+function CancelRun({ runId }: { runId: string }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  return (
+    <div className="mt-4 flex flex-col items-start gap-2">
+      <Button variant="secondary" loading={busy} onClick={async () => {
+        if (!window.confirm("Stop this list? Credits already used stay charged and the rest is released. A stopped list has no shortlist.")) return;
+        setBusy(true);
+        setError(null);
+        try {
+          await api(`/api/runs/${runId}/cancel`, { method: "POST", body: {} });
+          window.location.reload();
+        } catch (e) {
+          setError(e instanceof ApiError ? e.message : "Could not stop the list.");
+          setBusy(false);
+        }
+      }}>Stop this list</Button>
+      {error && <Alert>{error}</Alert>}
     </div>
   );
 }

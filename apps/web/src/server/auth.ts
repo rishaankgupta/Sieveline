@@ -104,6 +104,9 @@ export function createAuth({ db, env, email, log, offline = false }: AuthDeps) {
         }
       },
     },
+    // Two-factor, breached-password check, captcha and cookie handling. Missing until 2026-10-28:
+    // the list was built but never passed, so none of these ran (found by the admin E2E).
+    plugins,
     socialProviders,
     account: { accountLinking: { enabled: true, trustedProviders: ["google"] } },
     session: {

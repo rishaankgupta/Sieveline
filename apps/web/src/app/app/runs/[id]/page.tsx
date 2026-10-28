@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { can } from "@sieveline/core";
 import { getRun } from "@sieveline/db";
 import { app } from "@/server/context";
 import { requireWorkspace } from "@/server/session";
@@ -17,5 +18,5 @@ export default async function RunPage({ params }: { params: Promise<{ id: string
   const run = await getRun(app().db, ws, id);
   if (!run) notFound();
   const name = (run.thesisSnapshot as { name?: string }).name ?? "List";
-  return <RunView runId={id} name={name} advisorEnabled={Boolean(app().llm) && ws.role !== "viewer"} />;
+  return <RunView runId={id} name={name} advisorEnabled={Boolean(app().llm) && ws.role !== "viewer"} canCancel={can(ws.role, "run.cancel")} />;
 }

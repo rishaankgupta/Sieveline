@@ -17,6 +17,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
     { href: "/app", label: "Lists" },
     { href: "/app/new", label: "New list" },
     { href: "/app/team", label: "Team" },
+    { href: "/app/security", label: "Security" },
   ];
   return (
     <div className="min-h-dvh">

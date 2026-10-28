@@ -55,6 +55,15 @@ export async function isResearchPausedPlatformWide(db: AnyDb): Promise<boolean> 
   return row?.value === true;
 }
 
+/** True when the platform kill switch is on or this workspace's research is paused or suspended. */
+export async function isResearchPausedFor(db: AnyDb, ctx: TenantContext & { workspaceId: string }): Promise<boolean> {
+  if (await isResearchPausedPlatformWide(db)) return true;
+  const [ws] = await withTenant(db, ctx, (tx) =>
+    tx.select({ paused: s.workspaces.researchPausedAt, suspended: s.workspaces.suspendedAt }).from(s.workspaces).where(eq(s.workspaces.id, ctx.workspaceId)),
+  );
+  return Boolean(!ws || ws.paused || ws.suspended);
+}
+
 /**
  * Checks the workspace cap and holds `amount` credits, inside the caller's transaction. The
  * workspace row is locked (FOR UPDATE) so two requests at once can't both pass the check.
@@ -166,7 +175,10 @@ export async function recordStep(
           error: input.error?.slice(0, 500) ?? null,
           ...(input.status === "succeeded" || input.status === "failed" ? { finishedAt: new Date() } : {}),
         },
-      }),
+      })
+      // Every step start/finish counts as progress for the stuck-run watchdog (LLM-only steps
+      // on a free model record no credits, so usage alone would not move the heartbeat).
+      .then(() => tx.update(s.runs).set({ lastHeartbeatAt: new Date() }).where(eq(s.runs.id, input.runId))),
   );
 }
 
@@ -181,7 +193,8 @@ export async function recordUsage(
       workspaceId: ctx.workspaceId, runId: input.runId, provider: input.provider, endpoint: input.endpoint,
       credits: String(input.credits), costUsd: String(input.costUsd), cached: input.cached, requestId: input.requestId ?? null,
     });
-    if (input.runId && (input.credits > 0 || input.costUsd > 0)) {
+    // Any usage (even a free LLM call) is progress, so it also moves the heartbeat.
+    if (input.runId) {
       await tx
         .update(s.runs)
         .set({

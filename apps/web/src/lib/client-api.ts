@@ -2,9 +2,11 @@
 
 export class ApiError extends Error {
   readonly status: number;
-  constructor(status: number, message: string) {
+  readonly code: string | undefined;
+  constructor(status: number, message: string, code?: string) {
     super(message);
     this.status = status;
+    this.code = code;
   }
 }
 
@@ -16,16 +18,17 @@ export async function api<T>(path: string, init: { method?: string; body?: unkno
     body: init.body === undefined ? undefined : JSON.stringify(init.body),
     credentials: "same-origin",
   });
-  if (res.status === 401) {
+  if (res.status === 204) return undefined as T;
+  const data = (await res.json().catch(() => null)) as (T & { error?: string; code?: string; issues?: { path: string; message: string }[] }) | null;
+  // A plain 401 means the session is gone; a 401 with a code (e.g. step_up_required) is for the caller.
+  if (res.status === 401 && (!data?.code || data.code === "admin_idle")) {
     window.location.assign(`/sign-in?next=${encodeURIComponent(window.location.pathname)}`);
     throw new ApiError(401, "Sign in required");
   }
-  if (res.status === 204) return undefined as T;
-  const data = (await res.json().catch(() => null)) as (T & { error?: string; issues?: { path: string; message: string }[] }) | null;
   if (!res.ok) {
     const issue = data?.issues?.[0];
     const detail = issue ? ` (${humanPath(issue.path)}: ${issue.message})` : "";
-    throw new ApiError(res.status, `${data?.error ?? "Something went wrong. Please try again."}${detail}`);
+    throw new ApiError(res.status, `${data?.error ?? "Something went wrong. Please try again."}${detail}`, data?.code);
   }
   return data as T;
 }

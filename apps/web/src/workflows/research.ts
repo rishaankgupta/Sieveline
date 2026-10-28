@@ -3,7 +3,7 @@ import {
   stageCrawl, stageDiscover, stageNews, stageRead, stageScore, type Candidate,
 } from "@sieveline/core";
 import {
-  getRun, listCompanies, listFacts, recordStep, runCreditsRemaining, saveScoredCompany, saveShortlist, setRunStatus, settleRun,
+  getRun, isResearchPausedFor, listCompanies, listFacts, recordStep, runCreditsRemaining, saveScoredCompany, saveShortlist, setRunStatus, settleRun,
   upsertCompanies,
 } from "@sieveline/db";
 import { FatalError } from "workflow";
@@ -56,9 +56,14 @@ async function loadRun(input: RunInput) {
   return { db, run, thesis: parseThesis(run.thesisSnapshot), settings: researchSettingsSchema.parse(run.settingsSnapshot ?? {}) };
 }
 
+/**
+ * Tavily client limited to what the run may still spend. A paused platform or workspace gives
+ * it a budget of 0, so the stage stops at its first call and the run ends with what it has
+ * (the kill switch takes effect at the next stage, not only for new runs).
+ */
 async function guarded(input: RunInput, ttlDays: number) {
   const { db } = researchDeps();
-  const remaining = await runCreditsRemaining(db, input, input.runId);
+  const remaining = (await isResearchPausedFor(db, input)) ? 0 : await runCreditsRemaining(db, input, input.runId);
   return budgetedTavily(tavilyForRun(input, input.runId, ttlDays), remaining);
 }
 
@@ -205,7 +210,10 @@ async function finalizeStep(input: RunInput, stoppedEarly: boolean) {
   const shortlist = buildShortlist(scored, thesis, settings.shortlistSize);
   await saveShortlist(db, input, input.runId, shortlist);
   await settleRun(db, input, input.runId);
-  await setRunStatus(db, input, input.runId, { status: "succeeded", finished: true, error: stoppedEarly ? "Stopped early: credit reservation used up" : null });
+  const reason = stoppedEarly
+    ? (await isResearchPausedFor(db, input)) ? "Stopped early: research was paused by an operator" : "Stopped early: credit reservation used up"
+    : null;
+  await setRunStatus(db, input, input.runId, { status: "succeeded", finished: true, error: reason });
   researchLog.info("run finished", { runId: input.runId, companies: rows.length, shortlist: shortlist.length, stoppedEarly });
   return { companies: rows.length, shortlist: shortlist.length, stoppedEarly };
 }

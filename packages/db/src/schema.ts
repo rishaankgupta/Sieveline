@@ -47,6 +47,8 @@ export const sessions = pgTable("sessions", {
   expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
   ipAddress: text("ip_address"),
   userAgent: text("user_agent"),
+  /** Last /admin request on this session; the admin area signs the session out after 30 min idle. */
+  adminLastSeenAt: timestamp("admin_last_seen_at", { withTimezone: true }),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 }, (t) => [index("sessions_user_idx").on(t.userId)]);

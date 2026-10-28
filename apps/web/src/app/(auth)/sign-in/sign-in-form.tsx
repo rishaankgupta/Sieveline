@@ -12,6 +12,7 @@ const SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 export function SignInForm({ nonce, googleEnabled }: { nonce?: string; googleEnabled: boolean }) {
   const params = useSearchParams();
   const next = safeNext(params.get("next"));
+  const idle = params.get("reason") === "idle";
   const [error, setError] = useState<string | null>(params.get("error") ? "Sign-in failed. Please try again." : null);
   const [loading, setLoading] = useState(false);
   const [captcha, setCaptcha] = useState<string | null>(null);
@@ -42,6 +43,7 @@ export function SignInForm({ nonce, googleEnabled }: { nonce?: string; googleEna
 
   return (
     <div className="flex flex-col gap-4">
+      {idle && <Alert tone="info">For safety, the admin panel signed you out after 30 minutes without activity. Please sign in again.</Alert>}
       {error && <Alert>{error}</Alert>}
       {googleEnabled && (
         <>

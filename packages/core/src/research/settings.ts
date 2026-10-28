@@ -27,3 +27,16 @@ export const researchSettingsSchema = z.object({
 export type ResearchSettings = z.infer<typeof researchSettingsSchema>;
 
 export const DEFAULT_RESEARCH_SETTINGS: ResearchSettings = researchSettingsSchema.parse({});
+
+/**
+ * An admin override: only the keys the admin set, same limits, no defaults filled in (zod's
+ * `.partial()` would still apply every default, freezing today's defaults into the stored row).
+ */
+export const researchSettingsOverrideSchema = z
+  .object(
+    Object.fromEntries(
+      Object.entries(researchSettingsSchema.shape).map(([k, v]) => [k, v.unwrap().optional()]),
+    ) as { [K in keyof typeof researchSettingsSchema.shape]: z.ZodOptional<ReturnType<(typeof researchSettingsSchema.shape)[K]["unwrap"]>> },
+  )
+  .strict();
+export type ResearchSettingsOverride = z.infer<typeof researchSettingsOverrideSchema>;

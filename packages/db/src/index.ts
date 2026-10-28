@@ -7,3 +7,5 @@ export * from "./research.ts";
 export * from "./members.ts";
 export * from "./views.ts";
 export * from "./deep-dives.ts";
+export * from "./admin.ts";
+export * from "./watchdog.ts";

@@ -1,6 +1,6 @@
 # Admin panel
 
-Last updated: 2026-10-28
+Last updated: 2026-10-28 (built: see section 5)
 
 Owner's request: manage **everything** from one place. This page lists what the admin panel
 controls, and the few things that deliberately stay outside it (and why).
@@ -61,3 +61,20 @@ Lives at `/admin` in the same app. Only users with the **platform admin** role c
 | Support | Users, workspaces (read), view-as, resend emails, privacy requests |
 | Finance | Billing, refunds, revenue |
 | Viewer | Read-only dashboards |
+
+## 5. What is built (2026-10-28)
+
+| Page | Can do now | Not yet |
+|---|---|---|
+| Overview | Users, workspaces, lists today/running/failed/stuck, credits today vs daily limit, month, held, LLM cost, 14-day chart. Each visit also stops stuck work | Revenue, error rate |
+| Users | Search, detail (workspaces, sessions, recent actions), suspend/unsuspend (signs out), sign out everywhere, set staff role (owner) | Reset 2FA, resend verification, delete with export, view-as |
+| Workspaces | Search, members, lists, credits, change monthly cap, pause/resume research | Credit grants/refunds, ownership transfer, plans |
+| Runs | Lists and deep dives with credits, status, stuck marker | Cancel, retry a stage, refund |
+| Settings | All research knobs with ranges, version history, restore, kill switch (owner) | Models and prompts, templates, blocklists, flags |
+| Integrations | Set / not set for each service; free tests for database, Tavily (shows Tavily's own usage), LLM | Stripe, email, Turnstile tests |
+| Audit log | Filter by action prefix, before/after, paging | Export |
+| Staff | Owner sets viewer/support/finance/admin | - |
+
+How access works: sign in, turn on two-factor at **/app/security**, then open **/admin**. Owners come only
+from the `PLATFORM_OWNER_EMAILS` variable (granted when that email is verified). Any change asks for a fresh
+authenticator code, valid 5 minutes. 30 minutes without admin activity signs that session out.

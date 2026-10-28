@@ -1,5 +1,5 @@
 import {
-  assertCan, DEFAULT_RESEARCH_SETTINGS, estimateRunCredits, researchSettingsSchema, thesisSchema, toDomain,
+  assertCan, DEFAULT_RESEARCH_SETTINGS, estimateRunCredits, researchSettingsOverrideSchema, researchSettingsSchema, thesisSchema, toDomain,
 } from "@sieveline/core";
 import { createRunWithReservation, getActiveSetting, getWorkspaceUsage, listRuns, schema, setRunStatus, withTenant } from "@sieveline/db";
 import { and, eq, gt, sql } from "drizzle-orm";
@@ -42,7 +42,7 @@ export function POST(request: Request): Promise<Response> {
     const seeds = [...new Set(body.seeds.map(toDomain).filter((d): d is string => d !== null))];
     // Admin-tuned settings (key "research_settings") over the documented defaults. Invalid admin
     // values fall back to defaults rather than blocking research.
-    const tuned = researchSettingsSchema.partial().safeParse((await getActiveSetting(db, "research_settings")) ?? {});
+    const tuned = researchSettingsOverrideSchema.safeParse((await getActiveSetting(db, "research_settings")) ?? {});
     const settings = researchSettingsSchema.parse({ ...DEFAULT_RESEARCH_SETTINGS, ...(tuned.success ? tuned.data : {}), shortlistSize: body.thesis.shortlistSize });
     const estimate = estimateRunCredits(body.thesis, settings, seeds.length);
     if (body.estimateOnly) return Response.json({ estimate });
