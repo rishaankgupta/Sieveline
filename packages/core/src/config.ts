@@ -33,6 +33,8 @@ export const serverEnvSchema = z.object({
   /** USD per million tokens, for cost tracking and caps. Set from the provider's price list. */
   LLM_PRICE_INPUT_PER_MTOK: z.coerce.number().min(0).default(0),
   LLM_PRICE_OUTPUT_PER_MTOK: z.coerce.number().min(0).default(0),
+  /** Requests per minute allowed by the provider (free tiers are low, e.g. 2). 0 = no local limit. */
+  LLM_MAX_RPM: z.coerce.number().int().min(0).default(0),
   /** Test-only override; must be https in production. */
   TAVILY_BASE_URL: z.string().url().default("https://api.tavily.com"),
   /** Separate connection for the admin panel (login role in sieveline_admin). */
@@ -83,7 +85,7 @@ export function loadServerEnv(source: Record<string, string | undefined> = proce
 export function integrationStatus(env: ServerEnv): Record<string, boolean> {
   return {
     tavily: Boolean(env.TAVILY_API_KEY),
-    llm: Boolean(env.LLM_PROVIDER && env.LLM_API_KEY && env.LLM_MODEL_SCORING),
+    llm: Boolean(env.LLM_BASE_URL && env.LLM_MODEL_SCORING),
     turnstile: Boolean(env.TURNSTILE_SECRET_KEY && env.NEXT_PUBLIC_TURNSTILE_SITE_KEY),
     googleSignIn: Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET),
     email: Boolean(env.EMAIL_PROVIDER_API_KEY && env.EMAIL_FROM),

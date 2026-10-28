@@ -1,4 +1,4 @@
-# M3-T10 real-data spike: calibration labs (part 1, without an LLM)
+# M3-T10 real-data spike: calibration labs
 
 Run on 2026-10-28 against the real Tavily API (free Researcher plan, development key).
 Raw output: `spike-m3-t10-raw.json`. Scripts: `apps/web/scripts/spike-real.ts`, `spike-map.ts`.
@@ -66,3 +66,50 @@ candidates whose search snippet mentions the thesis terms.
 - Accuracy of yes/no rule answers and how often quotes are rejected.
 - Query planner variants vs templates (the "+20% unique domains" check).
 - News and deep-read stages on real data.
+
+# Part 2: full pipeline with a real LLM (2026-10-28)
+
+LLM: `gpt-oss-120b` on **OVHcloud AI Endpoints, anonymous free tier** (no key, EU-hosted, 2 requests
+per minute per IP per model), chosen from `mnfst/awesome-free-llm-apis` because it needs no account.
+Pipeline: discover → Map → Extract → LLM rule answers with quote check → news (top 5) → crawl (top 2)
+→ shortlist. 12 companies. Script: `apps/web/scripts/spike-full.ts`. Raw: `spike-m3-t10-full-raw.json`.
+
+## Results (final run, after fixes)
+
+| Measure | Result |
+|---|---|
+| Time | 8.1 min for 12 companies (the 2-per-minute LLM limit is the bottleneck) |
+| Tavily credits | 57 (most reads served from the cache filled in part 1) |
+| Rule answers | 50 total: 21 yes, 2 no, 27 unknown |
+| Answers dropped for a quote not on the page | **0** (was 9 of 30 before the fixes below) |
+| Yes/no answers checked by hand against their quote | **22 of 23 clearly correct**; 1 debatable (an aviation data site marked as serving aviation; it fails the core rule anyway) |
+| LLM calls that failed | 2 of 12 |
+| Shortlist | 8 companies; top 2 are independent, long-running, ISO 17025 labs with on-site service |
+
+## Problems found and fixed in part 2
+
+1. **Tavily rejects `instructions` over 400 characters** (HTTP 422). Not in the docs read today.
+   Crawl instructions are now built from short rule labels and capped at 400; the client refuses
+   longer ones before spending.
+2. **Tavily can return `raw_content: null`** (not just empty). Null pages now count as failed reads
+   (and get the advanced retry) instead of crashing the step.
+3. **30% of answers dropped because the model's quote didn't match the page**, for 3 reasons seen on
+   real pages: the model joined two real sentences with "...", the page lost punctuation
+   ("Services:" vs "Services"), and the page glued words ("EquipmentServices"). Matching now compares
+   letters and digits only and accepts "..." between fragments only if every fragment is on the
+   page, in order. Invented or reordered fragments are still rejected (tests).
+4. **"JM Test Systems Acquires Alltite" was flagged as the company being acquired.** It's the buyer.
+   That's now an "acquirer" signal (often means a growing, possibly investor-backed platform), not a
+   red flag.
+5. **Shortlist reasons were clumsy** ("Is instrument calibration the company's main business").
+   Rules now have short labels ("calibration is the core business").
+6. **2 of 12 LLM calls failed.** Likely the reasoning model running out of output tokens at 1,500;
+   raised to 4,000 and failures now record the reason. Not re-measured yet.
+
+## What this does and doesn't prove
+
+- Proves: the pipeline works end to end on real sites; facts are real and sourced; credit metering
+  and caching work; output is useful for this niche.
+- Doesn't prove: accuracy at 150-company scale, the "independently owned" rule (mostly "unknown":
+  sites rarely say it), or speed with a paid LLM. With 2 requests/minute, a 150-company list would
+  take about 75 minutes of LLM time, so **the anonymous free tier is only for testing**.

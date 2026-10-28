@@ -7,7 +7,8 @@ import type { LlmClient } from "./llm.ts";
 import { classifyNews, newsQueries, type NewsFlag } from "./news.ts";
 import { MAP_INSTRUCTIONS, pickPages } from "./pages.ts";
 import { planQueries } from "./queries.ts";
-import { shortlistReason } from "./reasons.ts";
+import { labelFor, shortlistReason } from "./reasons.ts";
+import { TAVILY_INSTRUCTIONS_MAX } from "../tavily/client.ts";
 import type { ResearchSettings } from "./settings.ts";
 import { verifyCompany, type PageText, type VerifiedCompany } from "./verify.ts";
 
@@ -96,9 +97,9 @@ export async function stageRead(
   const allUrls = [...urlsByDomain.values()].flat();
   const pages = new Map<string, PageText[]>();
   const failed: string[] = [];
-  const record = (url: string, text: string) => {
+  const record = (url: string, text: string | null) => {
     const domain = [...urlsByDomain.entries()].find(([, us]) => us.includes(url))?.[0];
-    if (domain && text.trim()) pages.set(domain, [...(pages.get(domain) ?? []), { url, text }]);
+    if (domain && text?.trim()) pages.set(domain, [...(pages.get(domain) ?? []), { url, text }]);
   };
 
   for (const batch of chunk(allUrls, s.extractBatchSize)) {
@@ -106,6 +107,7 @@ export async function stageRead(
     const ok = new Set<string>();
     for (const r of res.results) {
       const url = batch.find((u) => sameUrl(u, r.url)) ?? r.url;
+      if (!r.raw_content?.trim()) continue; // null/empty counts as failed, so it gets the advanced retry
       ok.add(url);
       record(url, r.raw_content);
     }
@@ -152,7 +154,7 @@ export async function stageNews(deps: { tavily: TavilyLike }, company: ScoredCom
 }
 
 export function applyNewsFlags(company: ScoredCompany, flags: NewsFlag[], thesis: Thesis): ScoredCompany {
-  const red = flags.filter((f) => f.kind !== "succession");
+  const red = flags.filter((f) => f.kind !== "succession" && f.kind !== "acquirer");
   if (!red.length) return { ...company, newsFlags: flags };
   const signals = { ...company.signals, parentFlags: [...company.signals.parentFlags, ...red.map((f) => f.quote)].slice(0, 5) };
   const result = scoreCompany({ hasText: company.pages.length > 0, signals, criteria: company.verified.criteria }, thesis);
@@ -160,6 +162,21 @@ export function applyNewsFlags(company: ScoredCompany, flags: NewsFlag[], thesis
 }
 
 // ------------------------------------------------------------------ stage 10: deep read (top only)
+/**
+ * Tavily rejects instructions over 400 characters (HTTP 422; found on real data, not in the docs
+ * read on 2026-10-28). Build a short instruction from the rule labels and cut at a word boundary.
+ */
+export function crawlInstructions(thesis: Thesis): string {
+  const focus = thesis.criteria.map((c) => c.label ?? labelFor(c.question)).join("; ");
+  return truncateWords(`Find pages about company history, ownership, leadership and services. Focus on: ${focus}.`, TAVILY_INSTRUCTIONS_MAX);
+}
+
+export function truncateWords(text: string, max: number): string {
+  if (text.length <= max) return text;
+  const cut = text.slice(0, max);
+  return cut.slice(0, Math.max(cut.lastIndexOf(" "), 1)).trim();
+}
+
 export async function stageCrawl(
   deps: { tavily: TavilyLike; llm?: LlmClient },
   thesis: Thesis,
@@ -169,7 +186,7 @@ export async function stageCrawl(
 ): Promise<ScoredCompany> {
   const res = await deps.tavily.crawl({
     url: `https://${company.domain}`,
-    instructions: `${MAP_INSTRUCTIONS} Focus on: ${thesis.criteria.map((c) => c.question).join(" ")}`.slice(0, 1000),
+    instructions: crawlInstructions(thesis),
     max_depth: 2,
     limit: s.crawlLimit,
     allow_external: false,
@@ -179,7 +196,9 @@ export async function stageCrawl(
     exclude_paths: ["/blog/.*", "/news/.*", "/shop/.*", "/cart.*", "/tag/.*"],
   });
   const known = new Set(company.pages.map((p) => p.url));
-  const extra = res.results.filter((r) => !known.has(r.url) && r.raw_content.trim()).map((r) => ({ url: r.url, text: r.raw_content }));
+  const extra = res.results
+    .filter((r): r is { url: string; raw_content: string } => !known.has(r.url) && Boolean(r.raw_content?.trim()))
+    .map((r) => ({ url: r.url, text: r.raw_content }));
   if (!extra.length) return company;
   const rescored = await stageScore(deps, thesis, company, [...company.pages, ...extra], currentYear);
   return applyNewsFlags(rescored, company.newsFlags, thesis);

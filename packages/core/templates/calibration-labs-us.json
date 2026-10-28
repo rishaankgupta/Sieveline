@@ -2,18 +2,66 @@
   "name": "Independent calibration labs (US)",
   "description": "Independent, owner-run US companies whose main business is calibrating measuring instruments for manufacturers in aerospace, medical devices, pharma, defense and automotive. Ideally 15+ years old, ISO/IEC 17025 accredited, offering on-site calibration, and not owned by private equity or a larger group.",
   "country": "united states",
-  "searchTerms": ["ISO 17025 accredited calibration laboratory", "independent calibration services company", "on-site instrument calibration services"],
-  "places": ["Texas", "Ohio", "Pennsylvania", "Michigan", "North Carolina"],
+  "searchTerms": [
+    "ISO 17025 accredited calibration laboratory",
+    "independent calibration services company",
+    "on-site instrument calibration services"
+  ],
+  "places": [
+    "Texas",
+    "Ohio",
+    "Pennsylvania",
+    "Michigan",
+    "North Carolina"
+  ],
   "minYearsInBusiness": 15,
   "strongFitScore": 6,
   "shortlistSize": 10,
-  "excludeIfMentions": ["Accredited Labs", "Transcat", "Trescal", "Tektronix Service Solutions"],
-  "excludeDomains": ["transcat.com", "trescal.com", "tek.com", "keysight.com", "fluke.com", "accreditedlabs.com"],
+  "excludeIfMentions": [
+    "Accredited Labs",
+    "Transcat",
+    "Trescal",
+    "Tektronix Service Solutions"
+  ],
+  "excludeDomains": [
+    "transcat.com",
+    "trescal.com",
+    "tek.com",
+    "keysight.com",
+    "fluke.com",
+    "accreditedlabs.com"
+  ],
   "criteria": [
-    { "id": "calibration_is_core", "question": "Is instrument calibration the company's main business (not a side service of an equipment seller or manufacturer)?", "weight": 3, "required": true },
-    { "id": "iso_17025", "question": "Does the site say the company is ISO/IEC 17025 accredited?", "weight": 2 },
-    { "id": "onsite", "question": "Does the company offer on-site (field) calibration?", "weight": 1 },
-    { "id": "regulated_customers", "question": "Does it serve regulated industries such as aerospace, medical devices, pharma or defense?", "weight": 1 },
-    { "id": "independent", "question": "Does the text say the company is independent (family-owned, owner-operated, privately held) rather than part of a larger group or PE-backed?", "weight": 2 }
+    {
+      "id": "calibration_is_core",
+      "question": "Is instrument calibration the company's main business (not a side service of an equipment seller or manufacturer)?",
+      "weight": 3,
+      "required": true,
+      "label": "calibration is the core business"
+    },
+    {
+      "id": "iso_17025",
+      "question": "Does the site say the company is ISO/IEC 17025 accredited?",
+      "weight": 2,
+      "label": "ISO 17025 accredited"
+    },
+    {
+      "id": "onsite",
+      "question": "Does the company offer on-site (field) calibration?",
+      "weight": 1,
+      "label": "offers on-site calibration"
+    },
+    {
+      "id": "regulated_customers",
+      "question": "Does it serve regulated industries such as aerospace, medical devices, pharma or defense?",
+      "weight": 1,
+      "label": "serves regulated industries"
+    },
+    {
+      "id": "independent",
+      "question": "Does the text say the company is independent (family-owned, owner-operated, privately held) rather than part of a larger group or PE-backed?",
+      "weight": 2,
+      "label": "independently owned"
+    }
   ]
 }

@@ -6,6 +6,8 @@ import type {
 } from "./types.ts";
 
 export const TAVILY_BASE_URL = "https://api.tavily.com";
+/** Map/Crawl `instructions` limit enforced by the API (HTTP 422 above it), measured 2026-10-28. */
+export const TAVILY_INSTRUCTIONS_MAX = 400;
 
 /** Response cache. Implemented with Postgres in the db package; in-memory in tests. */
 export interface TavilyCache {
@@ -49,6 +51,12 @@ export interface TavilyClientOptions {
 
 const NON_CACHEABLE = new Set(["research", "usage"]);
 
+function checkInstructions(instructions: string | undefined): void {
+  if (instructions && instructions.length > TAVILY_INSTRUCTIONS_MAX) {
+    throw new Error(`Tavily instructions must be at most ${TAVILY_INSTRUCTIONS_MAX} characters`);
+  }
+}
+
 export class TavilyClient {
   private readonly fetchImpl: typeof fetch;
   private readonly limiters: Record<EndpointGroup, SlidingWindowLimiter>;
@@ -80,10 +88,12 @@ export class TavilyClient {
   }
 
   map(req: MapRequest): Promise<MapResponse> {
+    checkInstructions(req.instructions);
     return this.call("POST", "map", "general", req);
   }
 
   crawl(req: CrawlRequest): Promise<CrawlResponse> {
+    checkInstructions(req.instructions);
     return this.call("POST", "crawl", "crawl", req, 160_000);
   }
 

@@ -1,7 +1,7 @@
 import { toDomain } from "../domain.ts";
 import type { SearchResult } from "../tavily/types.ts";
 
-export type NewsFlagKind = "acquired" | "merger" | "lawsuit" | "ownership_change" | "closure" | "succession";
+export type NewsFlagKind = "acquired" | "merger" | "lawsuit" | "ownership_change" | "closure" | "succession" | "acquirer";
 
 const RULES: { kind: NewsFlagKind; re: RegExp }[] = [
   { kind: "acquired", re: /\b(acquired|acquires|acquisition of|has been purchased|bought by)\b/i },
@@ -11,6 +11,14 @@ const RULES: { kind: NewsFlagKind; re: RegExp }[] = [
   { kind: "closure", re: /\b(bankrupt(cy)?|closing its doors|shut down|liquidation|ceases operations)\b/i },
   { kind: "succession", re: /\b(retir(es|ing|ement)|succession|steps down|passes the torch)\b/i },
 ];
+
+/** True when the company name is the one doing the acquiring ("Acme acquires X", "Acme has acquired X"). */
+function isSubjectOfAcquisition(text: string, name: string, verbAt: number): boolean {
+  const before = text.slice(Math.max(0, verbAt - name.length - 25), verbAt).toLowerCase();
+  const verb = text.slice(verbAt, verbAt + 20).toLowerCase();
+  if (/^acquired by|^bought by|^has been purchased/.test(verb)) return false;
+  return before.includes(name.toLowerCase()) && /(acquires|acquired|has acquired|completes acquisition)/.test(text.slice(verbAt - 15, verbAt + 25).toLowerCase());
+}
 
 export interface NewsFlag {
   kind: NewsFlagKind;
@@ -30,6 +38,8 @@ export function newsQueries(name: string): string[] {
  * Keeps only news that names the company (or is on its own site) and matches a flag rule.
  * Each flag carries the sentence that triggered it, so the buyer can judge it.
  * "Succession" is shown as a signal, not a red flag: an owner retiring can mean a willing seller.
+ * "Acquirer" (the company buys others, e.g. "JM Test Systems Acquires Alltite", found on real data)
+ * is also a signal, not a red flag: it often means a growing platform, possibly investor-backed.
  */
 export function classifyNews(results: readonly SearchResult[], company: { name: string; domain: string }): NewsFlag[] {
   const nameLc = company.name.toLowerCase();
@@ -42,10 +52,12 @@ export function classifyNews(results: readonly SearchResult[], company: { name: 
     for (const rule of RULES) {
       const m = rule.re.exec(text);
       if (!m) continue;
+      let kind = rule.kind;
+      if (kind === "acquired" && isSubjectOfAcquisition(text, company.name, m.index)) kind = "acquirer";
       const start = Math.max(0, text.lastIndexOf(".", m.index) + 1);
       const end = text.indexOf(".", m.index + m[0].length);
       flags.push({
-        kind: rule.kind,
+        kind,
         title: (r.title ?? "").slice(0, 200),
         url: r.url,
         quote: text.slice(start, end === -1 ? undefined : end + 1).trim().slice(0, 400),

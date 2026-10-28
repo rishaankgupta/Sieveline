@@ -5,7 +5,7 @@ import { createRunWithReservation, schema, setRunStatus, withTenant } from "@sie
 import { and, eq, gt, sql } from "drizzle-orm";
 import { start } from "workflow/api";
 import { z } from "zod";
-import { assertSameOrigin, handle, HttpError } from "@/server/api";
+import { assertSameOrigin, handle, HttpError, readJson } from "@/server/api";
 import { app } from "@/server/context";
 import { requireWorkspace } from "@/server/session";
 import { researchRun } from "@/workflows/research";
@@ -28,10 +28,7 @@ export function POST(request: Request): Promise<Response> {
     const ws = await requireWorkspace();
     assertCan(ws.role, "run.start");
 
-    const raw = await request.json().catch(() => {
-      throw new HttpError(400, "Body must be JSON");
-    });
-    const body = bodySchema.parse(raw);
+    const body = bodySchema.parse(await readJson(request));
     const seeds = [...new Set(body.seeds.map(toDomain).filter((d): d is string => d !== null))];
     // Admin-tuned defaults (MA-T02) will be read here; for now the documented defaults.
     const settings = researchSettingsSchema.parse({ ...DEFAULT_RESEARCH_SETTINGS, shortlistSize: body.thesis.shortlistSize });

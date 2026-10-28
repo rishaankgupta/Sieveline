@@ -19,7 +19,7 @@ Each milestone ends with a **gate**: its checks must pass before the next milest
 | M0-T02 | Owner decisions D1–D4 | S | done (D4 deferred to M3) | Recorded in DECISIONS-NEEDED |
 | M0-T03 | Update plan for shortlist + Advisor chat, Vercel + Neon, full Tavily strategy | S | done | ADR-0004, ADR-0005, TAVILY-STRATEGY.md |
 | M0-T05 | Plan admin panel and Cloudflare role | S | done | ADMIN.md, ADR-0006 |
-| M0-T04 | Git remote (GitHub repo) and push | S | in progress (remote added: github.com/rishaankgupta/Sieveline; first push awaits owner OK) | Repo URL in README |
+| M0-T04 | Git remote (GitHub repo) and push | S | done (pushed to github.com/rishaankgupta/Sieveline) | Repo URL in README |
 
 **Gate:** owner confirms the name (D1) and the updated plan.
 
@@ -47,8 +47,8 @@ Each milestone ends with a **gate**: its checks must pass before the next milest
 | M2-T02 | Sign up, verify email, sign in, sign out, reset password | M | done (API-level tests on real Postgres; browser E2E after Neon is connected) | E2E test for each flow |
 | M2-T03 | Google sign-in | S | in progress (configured; needs Google OAuth credentials to test) | E2E with mocked provider |
 | M2-T04 | Rate limiting on auth, API and chat routes | S | in progress (auth routes done and tested; API and chat routes when they exist) | 11th failed sign-in in a minute is blocked |
-| M2-T05 | Workspaces, roles, invites, remove member | M | in progress (permission matrix + workspace on sign-up done; invites and role changes next) | Permission matrix test passes |
-| M2-T06 | Audit log writes + viewer page | S | in progress (writes for workspace creation; viewer page next) | Each listed action creates a log row |
+| M2-T05 | Workspaces, roles, invites, remove member | M | done (invites with hashed one-time tokens, role changes, remove/leave, last-owner protection) | Permission matrix test passes |
+| M2-T06 | Audit log writes + viewer page | S | in progress (writes + API done; viewer page with the settings UI in M4) | Each listed action creates a log row |
 | M2-T07 | Security headers + CSP with nonces | S | done | Header test passes; no CSP errors |
 
 **Gate:** auth E2E and permission matrix tests pass.
@@ -66,7 +66,7 @@ Each milestone ends with a **gate**: its checks must pass before the next milest
 | M3-T07 | Pipeline stages 1–12 as Workflow steps; batching; resume; watchdog | L | in progress (stages as durable steps, early stop on credits, end-to-end test done; stuck-run watchdog next) | Kill mid-run → resumes and finishes |
 | M3-T08 | Red-flag news checks and Crawl deep read for top candidates | M | done | Flags appear with dates and links |
 | M3-T09 | Seed CSV import with validation and limits | S | in progress (API accepts a validated seed domain list; CSV upload UI in M4) | Bad files rejected with clear errors |
-| M3-T10 | **Real-data spike (needs Tavily + LLM keys):** calibration labs | M | in progress (part 1 done without LLM: 97% readable sites, 14/14 founded years correct; LLM part needs a key) | Report: text rate, accuracy on 50 hand-checked rows, credits per stage, time |
+| M3-T10 | **Real-data spike (needs Tavily + LLM keys):** calibration labs | M | done (part 1 + 2; report docs/03-quality/SPIKE-M3-T10.md; re-run at 150 companies with a faster LLM before launch) | Report: text rate, accuracy on 50 hand-checked rows, credits per stage, time |
 
 **Gate:** real-data report meets QUALITY.md §5, or a written decision on what to change.
 

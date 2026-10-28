@@ -114,6 +114,21 @@ export const memberships = pgTable("memberships", {
   createdAt: createdAt(),
 }, (t) => [primaryKey({ columns: [t.workspaceId, t.userId] }), index("memberships_user_idx").on(t.userId)]);
 
+export const invitations = pgTable("invitations", {
+  id: id(),
+  workspaceId: workspaceId(),
+  email: text("email").notNull(),
+  role: memberRole("role").notNull().default("member"),
+  /** SHA-256 of the token in the email link; the raw token is never stored. */
+  tokenHash: text("token_hash").notNull().unique(),
+  invitedBy: text("invited_by").references(() => users.id, { onDelete: "set null" }),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  acceptedAt: timestamp("accepted_at", { withTimezone: true }),
+  acceptedBy: text("accepted_by").references(() => users.id, { onDelete: "set null" }),
+  revokedAt: timestamp("revoked_at", { withTimezone: true }),
+  createdAt: createdAt(),
+}, (t) => [index("invitations_ws_idx").on(t.workspaceId), index("invitations_email_idx").on(sql`lower(${t.email})`)]);
+
 // ---------------------------------------------------------------- research
 export const theses = pgTable("theses", {
   id: id(),
@@ -316,6 +331,6 @@ export const thesisTemplates = pgTable("thesis_templates", {
 
 /** Tables protected by row-level security (tenant data). Used by migrations and tests. */
 export const TENANT_TABLES = [
-  "workspaces", "memberships", "theses", "runs", "run_steps", "companies", "facts", "reviews",
+  "workspaces", "memberships", "invitations", "theses", "runs", "run_steps", "companies", "facts", "reviews",
   "shortlist_items", "chat_threads", "chat_messages", "deep_dives", "usage_events",
 ] as const;

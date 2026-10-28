@@ -53,7 +53,8 @@ export interface ExtractRequest {
 }
 
 export interface ExtractResponse {
-  results: { url: string; raw_content: string }[];
+  /** raw_content can be null on real responses (seen 2026-10-28), not only empty. */
+  results: { url: string; raw_content: string | null }[];
   failed_results?: { url: string; error?: string }[];
   usage?: Usage;
   request_id?: string;
@@ -86,7 +87,7 @@ export interface CrawlRequest extends MapRequest {
 
 export interface CrawlResponse {
   base_url: string;
-  results: { url: string; raw_content: string }[];
+  results: { url: string; raw_content: string | null }[];
   usage?: Usage;
   request_id?: string;
 }

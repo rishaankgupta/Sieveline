@@ -12,7 +12,7 @@ Last updated: 2026-10-28
 | D11 | Accounts | Owner has Vercel and Neon; also has Cloudflare. Role of Cloudflare proposed in ADR-0006 | 2026-10-28 |
 | D12 | Admin panel | Manage everything from one panel (`docs/07-admin/ADMIN.md`) | 2026-10-28 |
 | D15 | Hosting cost | Free tiers only: GitHub Student Pack domain, free Vercel / Neon / Cloudflare plans. Code stays within free limits (each research step under 300 s) | 2026-10-28 |
-| D4 | LLM provider | Still open. Neon AI Gateway was offered but every model there needs a paid Neon plan (checked 2026-10-28). Built provider-agnostic | 2026-10-28 |
+| D4 | LLM provider | For testing: OVHcloud AI Endpoints anonymous free tier (gpt-oss-120b), from the owner's list. Too slow for production (2 requests/min); a keyed provider is needed before launch | 2026-10-28 |
 
 ### D1 notes: name check for "Sieveline"
 - Meaning: a sieve keeps only what's worth keeping; "line" is the buyer's deal pipeline.

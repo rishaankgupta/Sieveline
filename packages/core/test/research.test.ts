@@ -202,7 +202,7 @@ describe("estimates and helpers", () => {
       },
       thesis,
     );
-    expect(reason).toBe("39 years in business · family-owned · ISO/IEC 17025 accredited");
+    expect(reason).toBe("39 years in business · family-owned · ISO 17025 accredited");
     expect(shortlistReason({ signals: { foundedYear: null, foundedEvidence: null, yearsInBusiness: null, ownershipEvidence: null, parentFlags: [] }, criteria: {} }, thesis)).toMatch(/few facts/);
   });
 });

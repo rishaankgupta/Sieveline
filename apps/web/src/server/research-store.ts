@@ -49,7 +49,7 @@ export function scoredFromRows(row: CompanyRow, facts: FactRow[], thesis: Thesis
   const newsFlags: NewsFlag[] = facts
     .filter((f) => f.kind === "news_flag")
     .map((f) => ({ kind: (f.key ?? "acquired") as NewsFlag["kind"], title: f.value, url: f.sourceUrl ?? "", quote: f.quote ?? "", publishedAt: f.publishedAt?.toISOString() ?? null }));
-  const red = newsFlags.filter((n) => n.kind !== "succession").map((n) => n.quote);
+  const red = newsFlags.filter((n) => n.kind !== "succession" && n.kind !== "acquirer").map((n) => n.quote);
   const allSignals = { ...signals, parentFlags: [...signals.parentFlags, ...red].slice(0, 5) };
   const summary = facts.find((f) => f.kind === "summary")?.value ?? null;
   const result = scoreCompany({ hasText: pages.length > 0, signals: allSignals, criteria }, thesis);

@@ -1,0 +1,497 @@
+{
+  "ranAt": "2026-10-28T13:53:35.285Z",
+  "model": "gpt-oss-120b",
+  "minutes": 8.1,
+  "creditsSpent": 57,
+  "creditsByEndpoint": {
+    "search": 6,
+    "map": 0,
+    "extract": 4,
+    "crawl": 10
+  },
+  "llmCalls": 12,
+  "llmCostUsd": 0,
+  "queries": [
+    "ISO 17025 accredited calibration laboratory Texas",
+    "ISO 17025 accredited calibration laboratory Ohio",
+    "ISO 17025 accredited calibration laboratory Pennsylvania",
+    "ISO 17025 accredited calibration laboratory Michigan",
+    "ISO 17025 accredited calibration laboratory North Carolina",
+    "independent calibration services company Texas",
+    "independent calibration services company Ohio",
+    "independent calibration services company Pennsylvania"
+  ],
+  "companies": 12,
+  "answers": {
+    "total": 50,
+    "yes": 21,
+    "no": 2,
+    "unknown": 27,
+    "droppedForBadQuote": 0,
+    "scoringFailures": 2
+  },
+  "shortlist": [
+    {
+      "domain": "allometrics.com",
+      "position": 1,
+      "reason": "50 years in business · family-owned · calibration is the core business · ISO 17025 accredited · offers on-site calibration"
+    },
+    {
+      "domain": "massflowtechsolutions.com",
+      "position": 2,
+      "reason": "32 years in business · calibration is the core business · ISO 17025 accredited · serves regulated industries"
+    },
+    {
+      "domain": "microprecision.com",
+      "position": 3,
+      "reason": "Calibration is the core business · ISO 17025 accredited · serves regulated industries"
+    },
+    {
+      "domain": "foxvalleymetrology.com",
+      "position": 4,
+      "reason": "30 years in business · ISO 17025 accredited · offers on-site calibration"
+    },
+    {
+      "domain": "tmicalibration.com",
+      "position": 5,
+      "reason": "Calibration is the core business · offers on-site calibration"
+    },
+    {
+      "domain": "techmaster.us",
+      "position": 6,
+      "reason": "37 years in business · veteran owned"
+    },
+    {
+      "domain": "ocscal.com",
+      "position": 7,
+      "reason": "96 years in business · calibration is the core business · ISO 17025 accredited · offers on-site calibration · check ownership: may belong to a group"
+    },
+    {
+      "domain": "jmtest.com",
+      "position": 8,
+      "reason": "44 years in business · ISO 17025 accredited · offers on-site calibration · serves regulated industries · check ownership: may belong to a group"
+    }
+  ],
+  "companiesDetail": [
+    {
+      "domain": "allometrics.com",
+      "name": "Allometrics",
+      "status": "strong_fit",
+      "score": 10,
+      "summary": "Allometrics provides calibration, metrology and cleanroom certification services to regulated industries, offering ISO‑17025 accredited on‑site and laboratory calibrations as a family‑owned business.",
+      "founded": 1976,
+      "parentFlags": [],
+      "news": [],
+      "notes": [],
+      "criteria": {
+        "calibration_is_core": {
+          "answer": "yes",
+          "quote": "Allometrics™ is a complete laboratory solutions provider specializing in calibration, metrology and controlled environment certification.",
+          "sourceUrl": "https://allometrics.com/about-us"
+        },
+        "iso_17025": {
+          "answer": "yes",
+          "quote": "Our A2LA accreditation to ISO/IEC 17025 standards provides independent verification of our technical competence and quality management system.",
+          "sourceUrl": "https://allometrics.com"
+        },
+        "onsite": {
+          "answer": "yes",
+          "quote": "Our field service teams and mobile laboratory capabilities allow us to provide on-site calibration and testing at your facility, or you can ship equipment to our Webster, Texas laboratory near Houston for in-house service.",
+          "sourceUrl": "https://allometrics.com"
+        },
+        "regulated_customers": {
+          "answer": "yes",
+          "quote": "Pharmaceutical • Medical Device Manufacturing • Aerospace • Aviation • Biomedical • Chemical Processing • Environmental Laboratories • Food Processing • Forensic Labs • Medical Facilities • Metallurgical • Petrochemical & Refining • Telecommunications • Universities & Research Labs",
+          "sourceUrl": "https://allometrics.com"
+        },
+        "independent": {
+          "answer": "unknown",
+          "quote": null,
+          "sourceUrl": null
+        }
+      }
+    },
+    {
+      "domain": "massflowtechsolutions.com",
+      "name": "Mass Flow Technology, Inc.",
+      "status": "strong_fit",
+      "score": 8,
+      "summary": "Mass Flow Technology provides ISO/IEC 17025‑accredited flow‑meter calibration, repair and related services for industrial and pharmaceutical customers.",
+      "founded": 1994,
+      "parentFlags": [],
+      "news": [],
+      "notes": [],
+      "criteria": {
+        "calibration_is_core": {
+          "answer": "yes",
+          "quote": "Mass Flow Technology, Inc. is an ISO/IEC 17025-accredited instrumentation service provider specializing in calibration, repair, and sales of process control devices.",
+          "sourceUrl": "https://massflowtechsolutions.com"
+        },
+        "iso_17025": {
+          "answer": "yes",
+          "quote": "Mass Flow Technology, Inc. is an ISO/IEC 17025:2017 accredited flow meter calibration company established in 1994 in Baytown, Texas.",
+          "sourceUrl": "https://massflowtechsolutions.com/about-us"
+        },
+        "onsite": {
+          "answer": "unknown",
+          "quote": null,
+          "sourceUrl": null
+        },
+        "regulated_customers": {
+          "answer": "yes",
+          "quote": "we serve industries including Oilfield, Pipeline, Refining, Chemical, General Manufacturing, Research, and Pharmaceuticals.",
+          "sourceUrl": "https://massflowtechsolutions.com/about-us"
+        },
+        "independent": {
+          "answer": "unknown",
+          "quote": null,
+          "sourceUrl": null
+        }
+      }
+    },
+    {
+      "domain": "avi-go.com",
+      "name": "Avi-Go",
+      "status": "fails_rule",
+      "score": 1,
+      "summary": "Avi-Go delivers a data and AI platform with real‑time flight tracking, analytics, and marketplace tools for the business aviation ecosystem.",
+      "founded": null,
+      "parentFlags": [],
+      "news": [],
+      "notes": [],
+      "criteria": {
+        "calibration_is_core": {
+          "answer": "no",
+          "quote": "Avi-Go is the leading intelligence and data platform dedicated to business aviation.",
+          "sourceUrl": "https://avi-go.com"
+        },
+        "iso_17025": {
+          "answer": "unknown",
+          "quote": null,
+          "sourceUrl": null
+        },
+        "onsite": {
+          "answer": "unknown",
+          "quote": null,
+          "sourceUrl": null
+        },
+        "regulated_customers": {
+          "answer": "yes",
+          "quote": "Built for the entire aviation value chain from OEMs and MROs to brokers, leasing firms, airports, and regulators.",
+          "sourceUrl": "https://avi-go.com"
+        },
+        "independent": {
+          "answer": "unknown",
+          "quote": null,
+          "sourceUrl": null
+        }
+      }
+    },
+    {
+      "domain": "tmicalibration.com",
+      "name": "TMI Calibration",
+      "status": "possible_fit",
+      "score": 4,
+      "summary": "TMI Calibration provides full‑service NIST‑traceable calibration and repair of test and measurement equipment.",
+      "founded": null,
+      "parentFlags": [],
+      "news": [],
+      "notes": [],
+      "criteria": {
+        "calibration_is_core": {
+          "answer": "yes",
+          "quote": "Calibration and repair of test and measurement equipment is our business.",
+          "sourceUrl": "https://tmicalibration.com"
+        },
+        "iso_17025": {
+          "answer": "unknown",
+          "quote": null,
+          "sourceUrl": null
+        },
+        "onsite": {
+          "answer": "yes",
+          "quote": "Our On‑Site Technical Services division will manage ... including your Calibration and/or Repair labs.",
+          "sourceUrl": "https://tmicalibration.com"
+        },
+        "regulated_customers": {
+          "answer": "unknown",
+          "quote": null,
+          "sourceUrl": null
+        },
+        "independent": {
+          "answer": "unknown",
+          "quote": null,
+          "sourceUrl": null
+        }
+      }
+    },
+    {
+      "domain": "jmtest.com",
+      "name": "JM Test Systems",
+      "status": "verify_ownership",
+      "score": 3,
+      "summary": "JM Test Systems provides calibration, repair, and test equipment services, including on‑site mobile calibration, to aerospace, defense, and medical‑device customers.",
+      "founded": 1982,
+      "parentFlags": [
+        "JM Test Systems Acquires Alltite, Expanding Calibration Capabilities and Geographic Reach Across the Central United States."
+      ],
+      "news": [
+        {
+          "kind": "acquired",
+          "title": "JM Test Systems Acquires Alltite, Expanding Calibration Capabilities and Geographic Reach Across the Central United States",
+          "url": "https://finance.yahoo.com/small-business/articles/jm-test-systems-acquires-alltite-123000157.html",
+          "quote": "JM Test Systems Acquires Alltite, Expanding Calibration Capabilities and Geographic Reach Across the Central United States.",
+          "publishedAt": "Wed, 22 Jul 2026 00:00:00 GMT"
+        }
+      ],
+      "notes": [],
+      "criteria": {
+        "calibration_is_core": {
+          "answer": "unknown",
+          "quote": null,
+          "sourceUrl": null
+        },
+        "iso_17025": {
+          "answer": "yes",
+          "quote": "ISO/IEC 17025 LAB ACCREDITED BY A2LA. ANSI/NCSL-Z540-1 AND ISO 10012-1 COMPLIANT",
+          "sourceUrl": "https://jmtest.com"
+        },
+        "onsite": {
+          "answer": "yes",
+          "quote": "Our onsite mobile instrument calibration & metrology laboratories are managed through our fixed facilities & are considered an extension of our fixed laboratories.",
+          "sourceUrl": "https://jmtest.com/about"
+        },
+        "regulated_customers": {
+          "answer": "yes",
+          "quote": "It primarily services the communications industry, DoD contractors in aircraft and shipbuilding industries and serves as a general purpose calibration facility...",
+          "sourceUrl": "https://jmtest.com/about"
+        },
+        "independent": {
+          "answer": "unknown",
+          "quote": null,
+          "sourceUrl": null
+        }
+      }
+    },
+    {
+      "domain": "fcxperformance.com",
+      "name": "FCX Performance",
+      "status": "fails_rule",
+      "score": 0,
+      "summary": "FCX Performance distributes and services industrial flow control products, offering repair, maintenance, and calibration for valves, pumps, and instrumentation.",
+      "founded": null,
+      "parentFlags": [],
+      "news": [],
+      "notes": [],
+      "criteria": {
+        "calibration_is_core": {
+          "answer": "no",
+          "quote": "providing mission critical products and performing repair, maintenance or calibration services to your components.",
+          "sourceUrl": "https://fcxperformance.com"
+        },
+        "iso_17025": {
+          "answer": "unknown",
+          "quote": null,
+          "sourceUrl": null
+        },
+        "onsite": {
+          "answer": "unknown",
+          "quote": null,
+          "sourceUrl": null
+        },
+        "regulated_customers": {
+          "answer": "unknown",
+          "quote": null,
+          "sourceUrl": null
+        },
+        "independent": {
+          "answer": "unknown",
+          "quote": null,
+          "sourceUrl": null
+        }
+      }
+    },
+    {
+      "domain": "microprecision.com",
+      "name": "Micro Precision Calibration",
+      "status": "strong_fit",
+      "score": 6,
+      "summary": "Micro Precision Calibration provides global calibration, repair, and testing services for a wide range of instruments across aerospace, medical, automotive, and other regulated industries.",
+      "founded": null,
+      "parentFlags": [],
+      "news": [],
+      "notes": [],
+      "criteria": {
+        "calibration_is_core": {
+          "answer": "yes",
+          "quote": "World Leader in Calibration Equipment Services & Solutions ... offering customers ... instrument calibration services, standards compliance testing, equipment repair and sales solutions.",
+          "sourceUrl": "https://microprecision.com"
+        },
+        "iso_17025": {
+          "answer": "yes",
+          "quote": "ISO/IEC 17025:2017 Accredited ... More than 50 labs ISO/IEC 17025:2017 accredited.",
+          "sourceUrl": "https://microprecision.com"
+        },
+        "onsite": {
+          "answer": "unknown",
+          "quote": null,
+          "sourceUrl": null
+        },
+        "regulated_customers": {
+          "answer": "yes",
+          "quote": "Industries + Medical & Biomedical + Aviation + Automotive + Manufacturing.",
+          "sourceUrl": "https://microprecision.com"
+        },
+        "independent": {
+          "answer": "unknown",
+          "quote": null,
+          "sourceUrl": null
+        }
+      }
+    },
+    {
+      "domain": "continentaltesting.com",
+      "name": "Columbus Calibration Lab",
+      "status": "weak_fit",
+      "score": 0,
+      "summary": null,
+      "founded": null,
+      "parentFlags": [],
+      "news": [],
+      "notes": [
+        "scoring failed: LlmOutputError"
+      ],
+      "criteria": {}
+    },
+    {
+      "domain": "morningstar.com",
+      "name": "Morningstar",
+      "status": "weak_fit",
+      "score": 0,
+      "summary": "Morningstar provides investment research, analysis, and data products for individual and institutional investors.",
+      "founded": null,
+      "parentFlags": [],
+      "news": [],
+      "notes": [],
+      "criteria": {
+        "calibration_is_core": {
+          "answer": "unknown",
+          "quote": null,
+          "sourceUrl": null
+        },
+        "iso_17025": {
+          "answer": "unknown",
+          "quote": null,
+          "sourceUrl": null
+        },
+        "onsite": {
+          "answer": "unknown",
+          "quote": null,
+          "sourceUrl": null
+        },
+        "regulated_customers": {
+          "answer": "unknown",
+          "quote": null,
+          "sourceUrl": null
+        },
+        "independent": {
+          "answer": "unknown",
+          "quote": null,
+          "sourceUrl": null
+        }
+      }
+    },
+    {
+      "domain": "techmaster.us",
+      "name": "San Antonio Calibration Lab",
+      "status": "possible_fit",
+      "score": 3,
+      "summary": null,
+      "founded": 1989,
+      "parentFlags": [],
+      "news": [],
+      "notes": [
+        "scoring failed: LlmOutputError"
+      ],
+      "criteria": {}
+    },
+    {
+      "domain": "ocscal.com",
+      "name": "OCS Technologies",
+      "status": "verify_ownership",
+      "score": 5,
+      "summary": "OCS Technologies provides ISO/IEC 17025 accredited calibration and metrology services for industrial equipment, offering both in‑house and on‑site calibrations.",
+      "founded": 1930,
+      "parentFlags": [
+        "National Expertise Your trusted partner for accuracy, compliance, and efficiency. Here’s what sets us apart: Powered by Accredited Labs Backed by Accredited Labs, we deliver top-tier calibration services aligned with national standards of excellence. Cust"
+      ],
+      "news": [],
+      "notes": [],
+      "criteria": {
+        "calibration_is_core": {
+          "answer": "yes",
+          "quote": "OCS provides ISO/IEC 17025 accredited calibration services to keep your equipment accurate, compliant, and running with minimal downtime.",
+          "sourceUrl": "https://ocscal.com"
+        },
+        "iso_17025": {
+          "answer": "yes",
+          "quote": "Calibration services by OCS are ISO/IEC 17025 accredited by the ANAB ANSI Accreditation Board.",
+          "sourceUrl": "https://ocscal.com"
+        },
+        "onsite": {
+          "answer": "yes",
+          "quote": "OCS calibration services are available at our facility or your own location, whichever works best!",
+          "sourceUrl": "https://ocscal.com"
+        },
+        "regulated_customers": {
+          "answer": "unknown",
+          "quote": null,
+          "sourceUrl": null
+        },
+        "independent": {
+          "answer": "unknown",
+          "quote": null,
+          "sourceUrl": null
+        }
+      }
+    },
+    {
+      "domain": "foxvalleymetrology.com",
+      "name": "Texas ISO 17025 Calibration Services",
+      "status": "possible_fit",
+      "score": 5,
+      "summary": "Fox Valley Metrology provides ISO‑17025 accredited calibration, repair, and equipment sales, offering on‑site services and serving a broad range of customers.",
+      "founded": 1996,
+      "parentFlags": [],
+      "news": [],
+      "notes": [],
+      "criteria": {
+        "calibration_is_core": {
+          "answer": "unknown",
+          "quote": null,
+          "sourceUrl": null
+        },
+        "iso_17025": {
+          "answer": "yes",
+          "quote": "All of our calibration services are ISO/IEC 17025 accredited.",
+          "sourceUrl": "https://foxvalleymetrology.com"
+        },
+        "onsite": {
+          "answer": "yes",
+          "quote": "On-site Calibration Services The ultimate in convenience. Bring our expertise right to your door.",
+          "sourceUrl": "https://foxvalleymetrology.com"
+        },
+        "regulated_customers": {
+          "answer": "unknown",
+          "quote": null,
+          "sourceUrl": null
+        },
+        "independent": {
+          "answer": "unknown",
+          "quote": null,
+          "sourceUrl": null
+        }
+      }
+    }
+  ]
+}

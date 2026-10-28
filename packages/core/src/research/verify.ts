@@ -70,9 +70,10 @@ export async function verifyCompany(llm: LlmClient, thesis: Thesis, domain: stri
 
   let out: { value: z.infer<typeof schema>; costUsd: number };
   try {
-    out = await llm.json({ task: "scoring", schema, system: SYSTEM, prompt, maxOutputTokens: 1500 });
+    // Reasoning models spend output tokens on thinking; 1500 truncated some real answers.
+    out = await llm.json({ task: "scoring", schema, system: SYSTEM, prompt, maxOutputTokens: 4000 });
   } catch (e) {
-    return { ...empty, notes: [`scoring failed: ${e instanceof Error ? e.name : "error"}`] };
+    return { ...empty, notes: [`scoring failed: ${e instanceof Error ? `${e.name}: ${e.message}`.slice(0, 160) : "error"}`] };
   }
   const { value, costUsd } = out;
 
@@ -91,7 +92,7 @@ export async function verifyCompany(llm: LlmClient, thesis: Thesis, domain: stri
     const onCited = cited ? verifyQuote(a.quote, byUrl.get(cited)!) : { ok: false as const };
     const anywhere = onCited.ok ? onCited : verifyQuote(a.quote, allText);
     if (!anywhere.ok) {
-      notes.push(`${c.id}: answer dropped (quote ${"reason" in anywhere ? anywhere.reason : "not_found"})`);
+      notes.push(`${c.id}: answer dropped (quote ${"reason" in anywhere ? anywhere.reason : "not_found"}): "${(a.quote ?? "").slice(0, 160)}"`);
       criteria[c.id] = { answer: "unknown", quote: null, sourceUrl: null };
       continue;
     }

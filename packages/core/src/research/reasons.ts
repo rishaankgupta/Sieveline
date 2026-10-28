@@ -22,7 +22,7 @@ export function shortlistReason(input: ReasonInput, thesis: Thesis): string {
     .filter((c) => input.criteria[c.id]?.answer === "yes")
     .sort((a, b) => b.weight - a.weight)
     .slice(0, 3)
-    .map((c) => labelFor(c.question));
+    .map((c) => c.label ?? labelFor(c.question));
   parts.push(...yes);
   if (input.signals.parentFlags.length) parts.push("check ownership: may belong to a group");
   const text = parts.join(" · ");

@@ -6,6 +6,8 @@ export const criterionSchema = z.object({
     .string()
     .regex(/^[a-z][a-z0-9_]{1,39}$/, "Use lowercase letters, numbers and underscores"),
   question: z.string().trim().min(10).max(300),
+  /** Short phrase shown on shortlist cards, e.g. "ISO 17025 accredited". */
+  label: z.string().trim().min(2).max(40).optional(),
   weight: z.number().min(0).max(10).default(1),
   required: z.boolean().default(false),
 });
