@@ -326,3 +326,14 @@ export function postgresTavilyCache(db: AnyDb) {
     },
   };
 }
+
+/** Newest active version of an admin setting (admin panel MA-T02 writes these; the app only reads). */
+export async function getActiveSetting<T = unknown>(db: AnyDb, key: string): Promise<T | undefined> {
+  const [row] = await db
+    .select({ value: s.settings.value })
+    .from(s.settings)
+    .where(and(eq(s.settings.key, key), eq(s.settings.active, true)))
+    .orderBy(desc(s.settings.version))
+    .limit(1);
+  return row?.value as T | undefined;
+}

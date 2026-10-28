@@ -48,7 +48,7 @@ Each milestone ends with a **gate**: its checks must pass before the next milest
 | M2-T03 | Google sign-in | S | in progress (configured; needs Google OAuth credentials to test) | E2E with mocked provider |
 | M2-T04 | Rate limiting on auth, API and chat routes | S | in progress (auth routes done and tested; API and chat routes when they exist) | 11th failed sign-in in a minute is blocked |
 | M2-T05 | Workspaces, roles, invites, remove member | M | done (invites with hashed one-time tokens, role changes, remove/leave, last-owner protection) | Permission matrix test passes |
-| M2-T06 | Audit log writes + viewer page | S | in progress (writes + API done; viewer page with the settings UI in M4) | Each listed action creates a log row |
+| M2-T06 | Audit log writes + viewer page | S | in progress (writes + API + team-page audit list done; admin viewer in MA) | Each listed action creates a log row |
 | M2-T07 | Security headers + CSP with nonces | S | done | Header test passes; no CSP errors |
 
 **Gate:** auth E2E and permission matrix tests pass.
@@ -74,24 +74,24 @@ Each milestone ends with a **gate**: its checks must pass before the next milest
 
 | ID | Task | Size | Status | Done when |
 |---|---|---|---|---|
-| M4-T01 | Design tokens, layout shell, navigation, light/dark | M | in progress (tokens, light/dark, skip link) | axe: 0 serious issues |
-| M4-T02 | Plain-words thesis entry → editable rules; calibration-lab template | M | todo | E2E: describe, edit, save, version |
-| M4-T03 | Cost estimate before run | S | todo | Estimate ≥ actual in 20 test runs |
-| M4-T04 | Run page with live progress per stage and cancel | M | todo | Updates ≤ 5 s; cancel stops spending |
-| M4-T05 | Dashboard (recent runs, credits left) | S | todo | Matches ledger totals |
+| M4-T01 | Design tokens, layout shell, navigation, light/dark | M | in progress (tokens, shell, nav, light/dark done; axe not run yet) | axe: 0 serious issues |
+| M4-T02 | Plain-words thesis entry → editable rules; calibration-lab template | M | done (describe in plain words -> LLM draft -> editable rules; saved per run) | E2E: describe, edit, save, version |
+| M4-T03 | Cost estimate before run | S | in progress (estimate shown before start; E2E: 57 max / 34 typical vs 8 actual; 20-run check not done) | Estimate ≥ actual in 20 test runs |
+| M4-T04 | Run page with live progress per stage and cancel | M | in progress (live stage progress done; cancel not built) | Updates ≤ 5 s; cancel stops spending |
+| M4-T05 | Dashboard (recent runs, credits left) | S | done (recent runs + credits; checked against one real run) | Matches ledger totals |
 
 ## M5 — Shortlist, Advisor, evidence, export
 
 | ID | Task | Size | Status | Done when |
 |---|---|---|---|---|
-| M5-T01 | Shortlist builder: top 10, one-line reasons, best evidence | M | todo | Every reason cites at least one fact |
-| M5-T02 | Shortlist screen with cards, pin/hide, live updates | M | todo | E2E: pin/hide persists |
-| M5-T03 | Advisor chat: streaming, tools (filter, rank, compare, explain, pin, hide) | L | todo | Tool calls change the shortlist; history saved |
-| M5-T04 | Grounding checks: cited fact ids validated; "not in evidence" path | M | todo | Eval set of 50 questions: 100% valid citations, 0 invented facts |
+| M5-T01 | Shortlist builder: top 10, one-line reasons, best evidence | M | done (top 10, reasons from verified facts only) | Every reason cites at least one fact |
+| M5-T02 | Shortlist screen with cards, pin/hide, live updates | M | done (cards, pin/hide persist; verified in real E2E) | E2E: pin/hide persists |
+| M5-T03 | Advisor chat: streaming, tools (filter, rank, compare, explain, pin, hide) | L | in progress (chat with pin/hide/show actions, history saved; no streaming; filter/compare via answers only) | Tool calls change the shortlist; history saved |
+| M5-T04 | Grounding checks: cited fact ids validated; "not in evidence" path | M | in progress (server validates fact ids; 1 real question passed; 50-question eval not done) | Eval set of 50 questions: 100% valid citations, 0 invented facts |
 | M5-T05 | Deep dive: Research with `output_schema` + evidence files, streamed, cost confirm | M | todo | Dossier renders with sources; credits recorded |
-| M5-T06 | Full list table: virtualized, sort, filter, search | M | todo | 500 rows smooth |
-| M5-T07 | Evidence panel, review actions, notes, keyboard shortcuts | M | todo | Keyboard-only review E2E passes |
-| M5-T08 | CSV + Excel export with formula-injection escaping | S | todo | `=cmd` exported as text |
+| M5-T06 | Full list table: virtualized, sort, filter, search | M | in progress (sort/filter/search done; not virtualized, not tested at 500 rows) | 500 rows smooth |
+| M5-T07 | Evidence panel, review actions, notes, keyboard shortcuts | M | in progress (evidence dialog, review status done; notes and shortcuts not built) | Keyboard-only review E2E passes |
+| M5-T08 | CSV + Excel export with formula-injection escaping | S | in progress (CSV with formula escaping done; Excel not built) | `=cmd` exported as text |
 
 **Gate:** a real buyer can go from thesis to shortlist to deep dive. (Selling can start here.)
 

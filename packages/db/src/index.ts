@@ -5,3 +5,4 @@ export { createWorkspaceForUser, listUserWorkspaces, type AnyDb } from "./worksp
 export { createDb, type Db } from "./client.ts";
 export * from "./research.ts";
 export * from "./members.ts";
+export * from "./views.ts";

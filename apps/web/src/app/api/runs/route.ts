@@ -1,7 +1,7 @@
 import {
   assertCan, DEFAULT_RESEARCH_SETTINGS, estimateRunCredits, researchSettingsSchema, thesisSchema, toDomain,
 } from "@sieveline/core";
-import { createRunWithReservation, schema, setRunStatus, withTenant } from "@sieveline/db";
+import { createRunWithReservation, getActiveSetting, getWorkspaceUsage, listRuns, schema, setRunStatus, withTenant } from "@sieveline/db";
 import { and, eq, gt, sql } from "drizzle-orm";
 import { start } from "workflow/api";
 import { z } from "zod";
@@ -21,6 +21,16 @@ const bodySchema = z.object({
 
 const RUNS_PER_HOUR = 10;
 
+export function GET(): Promise<Response> {
+  return handle(async () => {
+    const ws = await requireWorkspace();
+    assertCan(ws.role, "run.view");
+    const { db } = app();
+    const [runs, usage] = await Promise.all([listRuns(db, ws), getWorkspaceUsage(db, ws)]);
+    return Response.json({ runs, usage }, { headers: { "Cache-Control": "no-store" } });
+  });
+}
+
 export function POST(request: Request): Promise<Response> {
   return handle(async () => {
     const { env, db } = app();
@@ -30,8 +40,10 @@ export function POST(request: Request): Promise<Response> {
 
     const body = bodySchema.parse(await readJson(request));
     const seeds = [...new Set(body.seeds.map(toDomain).filter((d): d is string => d !== null))];
-    // Admin-tuned defaults (MA-T02) will be read here; for now the documented defaults.
-    const settings = researchSettingsSchema.parse({ ...DEFAULT_RESEARCH_SETTINGS, shortlistSize: body.thesis.shortlistSize });
+    // Admin-tuned settings (key "research_settings") over the documented defaults. Invalid admin
+    // values fall back to defaults rather than blocking research.
+    const tuned = researchSettingsSchema.partial().safeParse((await getActiveSetting(db, "research_settings")) ?? {});
+    const settings = researchSettingsSchema.parse({ ...DEFAULT_RESEARCH_SETTINGS, ...(tuned.success ? tuned.data : {}), shortlistSize: body.thesis.shortlistSize });
     const estimate = estimateRunCredits(body.thesis, settings, seeds.length);
     if (body.estimateOnly) return Response.json({ estimate });
 
