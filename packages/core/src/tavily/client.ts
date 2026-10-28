@@ -109,7 +109,8 @@ export class TavilyClient {
 
   getResearch(requestId: string): Promise<ResearchStatus> {
     if (!/^[\w-]{8,64}$/.test(requestId)) throw new Error("invalid research request id");
-    return this.call("GET", `research/${requestId}`, "general", undefined);
+    // include_usage is a query parameter on this GET (docs read 2026-10-28); POST bodies carry it instead.
+    return this.call("GET", `research/${requestId}?include_usage=true`, "general", undefined);
   }
 
   usage(): Promise<UsageResponse> {
@@ -128,7 +129,7 @@ export class TavilyClient {
     timeoutMs = this.opts.timeoutMs ?? 60_000,
     retryOnlyRateLimit = false,
   ): Promise<T> {
-    const endpoint = path.split("/")[0] ?? path;
+    const endpoint = path.split(/[/?]/)[0] ?? path;
     const payload = body === undefined ? undefined : { ...body, include_usage: true };
     const cacheable = method === "POST" && !NON_CACHEABLE.has(endpoint) && this.opts.cache;
     const key = cacheable ? this.cacheKey(path, payload) : "";

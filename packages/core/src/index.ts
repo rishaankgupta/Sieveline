@@ -26,3 +26,4 @@ export * from "./research/budget-guard.ts";
 export * from "./permissions.ts";
 export * from "./research/advisor.ts";
 export * from "./research/draft.ts";
+export * from "./research/deep-dive.ts";

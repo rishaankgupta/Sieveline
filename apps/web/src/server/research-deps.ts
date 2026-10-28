@@ -43,6 +43,16 @@ export function tavilyForRun(ctx: { userId: string; workspaceId: string }, runId
   });
 }
 
+/**
+ * A Tavily client with no cache and no automatic metering. Used for deep dives, whose credits
+ * are recorded once, idempotently, when the task settles (finishDeepDive).
+ */
+export function tavilyUnmetered(): TavilyClient {
+  const { env } = researchDeps();
+  if (!env.TAVILY_API_KEY) throw new Error("TAVILY_API_KEY is not set");
+  return new TavilyClient({ apiKey: env.TAVILY_API_KEY, environment: env.TAVILY_KEY_ENVIRONMENT, baseUrl: env.TAVILY_BASE_URL });
+}
+
 /** An LLM client whose cost is metered against this run. */
 export function llmForRun(ctx: { userId: string; workspaceId: string }, runId: string): LlmClient | undefined {
   const { db, llm } = researchDeps();

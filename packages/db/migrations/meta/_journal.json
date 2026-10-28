@@ -50,6 +50,13 @@
       "when": 1793193086919,
       "tag": "0006_invitations_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793202654533,
+      "tag": "0007_deep_dives",
+      "breakpoints": true
     }
   ]
 }

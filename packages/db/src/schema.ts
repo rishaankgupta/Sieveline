@@ -257,16 +257,26 @@ export const deepDives = pgTable("deep_dives", {
   dossier: jsonb("dossier"),
   sources: jsonb("sources"),
   creditsUsed: numeric("credits_used", { precision: 12, scale: 2 }).notNull().default("0"),
+  /** Worst-case credits held against the workspace cap until the deep dive settles. */
+  creditsReserved: numeric("credits_reserved", { precision: 12, scale: 2 }).notNull().default("0"),
+  runId: uuid("run_id").references(() => runs.id, { onDelete: "set null" }),
+  workflowRunId: text("workflow_run_id"),
+  error: text("error"),
   requestedBy: text("requested_by").references(() => users.id, { onDelete: "set null" }),
   createdAt: createdAt(),
   finishedAt: timestamp("finished_at", { withTimezone: true }),
-});
+}, (t) => [
+  index("deep_dives_company_idx").on(t.workspaceId, t.companyId, t.createdAt),
+  // At most one unfinished deep dive per company, so a double click can't pay twice.
+  uniqueIndex("deep_dives_one_active").on(t.companyId).where(sql`status in ('queued', 'running')`),
+]);
 
 // ---------------------------------------------------------------- metering and audit
 export const usageEvents = pgTable("usage_events", {
   id: bigserial("id", { mode: "number" }).primaryKey(),
   workspaceId: workspaceId(),
   runId: uuid("run_id").references(() => runs.id, { onDelete: "set null" }),
+  deepDiveId: uuid("deep_dive_id").references(() => deepDives.id, { onDelete: "set null" }),
   provider: provider("provider").notNull(),
   endpoint: text("endpoint").notNull(),
   credits: numeric("credits", { precision: 12, scale: 2 }).notNull().default("0"),

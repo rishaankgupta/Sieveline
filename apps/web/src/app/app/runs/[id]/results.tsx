@@ -2,19 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui";
-import { FIT, formatDate, NEWS_LABEL } from "@/lib/labels";
+import { FIT, formatDate, NEWS_LABEL, safeHref } from "@/lib/labels";
+import { DeepDivePanel } from "./deep-dive";
 import type { Company, Fact, Results, Review, ShortlistItem } from "./types";
 
-/** Only http(s) links are ever rendered; anything else (javascript:, data:...) is dropped. */
-export function safeHref(url: string | null | undefined): string | null {
-  if (!url) return null;
-  try {
-    const u = new URL(url);
-    return u.protocol === "https:" || u.protocol === "http:" ? u.toString() : null;
-  } catch {
-    return null;
-  }
-}
+export { safeHref };
 
 export function FitBadge({ status }: { status: string }) {
   const f = FIT[status] ?? FIT.unscored!;
@@ -179,6 +171,8 @@ export function EvidenceDialog({ company, results, focusFactId, onClose, onRevie
             </section>
           );
         })}
+
+        <DeepDivePanel key={company.id} runId={results.run.id} companyId={company.id} />
 
         {results.canEdit && (
           <section aria-labelledby="ev-review" className="border-t border-[var(--color-line)] pt-5">

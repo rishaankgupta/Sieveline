@@ -56,36 +56,48 @@ export async function isResearchPausedPlatformWide(db: AnyDb): Promise<boolean> 
 }
 
 /**
- * Creates a run and reserves its worst-case credits in one transaction. The workspace row is
- * locked (FOR UPDATE) so two runs started at once can't both pass the cap check.
+ * Checks the workspace cap and holds `amount` credits, inside the caller's transaction. The
+ * workspace row is locked (FOR UPDATE) so two requests at once can't both pass the check.
+ * Resets the monthly counter when a new UTC month has started.
+ */
+export async function reserveWorkspaceCredits(tx: AnyDb, ctx: { workspaceId: string }, amount: number): Promise<void> {
+  const locked = await tx.execute(sql`select * from workspaces where id = ${ctx.workspaceId} for update`);
+  const ws = rowsOf<{ monthly_credit_cap: number; credits_used_this_month: string; credits_reserved: string; usage_period_start: string | Date; research_paused_at: unknown; suspended_at: unknown }>(locked)[0];
+  if (!ws) throw new Error("workspace not found");
+  if (ws.research_paused_at || ws.suspended_at) throw new ResearchPaused("workspace");
+
+  let used = num(ws.credits_used_this_month);
+  const start = monthStart();
+  if (new Date(ws.usage_period_start) < start) {
+    used = 0;
+    await tx.update(s.workspaces).set({ creditsUsedThisMonth: "0", usagePeriodStart: start }).where(eq(s.workspaces.id, ctx.workspaceId));
+  }
+  const available = ws.monthly_credit_cap - used - num(ws.credits_reserved);
+  if (amount > available) throw new InsufficientCredits(Math.max(0, available), amount);
+  await tx
+    .update(s.workspaces)
+    .set({ creditsReserved: sql`${s.workspaces.creditsReserved} + ${amount}` })
+    .where(eq(s.workspaces.id, ctx.workspaceId));
+}
+
+/** Platform-wide checks done before any reservation: kill switch and daily credit ceiling. */
+export async function assertPlatformCanSpend(db: AnyDb, amount: number, dailyCeiling: number): Promise<void> {
+  if (await isResearchPausedPlatformWide(db)) throw new ResearchPaused("platform");
+  if ((await platformCreditsToday(db)) + amount > dailyCeiling) throw new ResearchPaused("daily_limit");
+}
+
+/**
+ * Creates a run and reserves its worst-case credits in one transaction.
  */
 export async function createRunWithReservation(
   db: AnyDb,
   ctx: TenantContext & { workspaceId: string },
   input: { thesisId: string | null; thesis: unknown; settings: unknown; reserveCredits: number; dailyCeiling: number },
 ): Promise<{ runId: string }> {
-  if (await isResearchPausedPlatformWide(db)) throw new ResearchPaused("platform");
-  if ((await platformCreditsToday(db)) + input.reserveCredits > input.dailyCeiling) throw new ResearchPaused("daily_limit");
+  await assertPlatformCanSpend(db, input.reserveCredits, input.dailyCeiling);
 
   return withTenant(db, ctx, async (tx) => {
-    const locked = await tx.execute(sql`select * from workspaces where id = ${ctx.workspaceId} for update`);
-    const ws = rowsOf<{ monthly_credit_cap: number; credits_used_this_month: string; credits_reserved: string; usage_period_start: string | Date; research_paused_at: unknown; suspended_at: unknown }>(locked)[0];
-    if (!ws) throw new Error("workspace not found");
-    if (ws.research_paused_at || ws.suspended_at) throw new ResearchPaused("workspace");
-
-    let used = num(ws.credits_used_this_month);
-    const start = monthStart();
-    if (new Date(ws.usage_period_start) < start) {
-      used = 0;
-      await tx.update(s.workspaces).set({ creditsUsedThisMonth: "0", usagePeriodStart: start }).where(eq(s.workspaces.id, ctx.workspaceId));
-    }
-    const available = ws.monthly_credit_cap - used - num(ws.credits_reserved);
-    if (input.reserveCredits > available) throw new InsufficientCredits(Math.max(0, available), input.reserveCredits);
-
-    await tx
-      .update(s.workspaces)
-      .set({ creditsReserved: sql`${s.workspaces.creditsReserved} + ${input.reserveCredits}` })
-      .where(eq(s.workspaces.id, ctx.workspaceId));
+    await reserveWorkspaceCredits(tx, ctx, input.reserveCredits);
     const [run] = await tx
       .insert(s.runs)
       .values({

@@ -6,3 +6,4 @@ export { createDb, type Db } from "./client.ts";
 export * from "./research.ts";
 export * from "./members.ts";
 export * from "./views.ts";
+export * from "./deep-dives.ts";

@@ -38,3 +38,14 @@ export function formatDate(d: string | Date | null | undefined): string {
   if (!d) return "";
   return new Intl.DateTimeFormat("en", { dateStyle: "medium", timeStyle: "short" }).format(new Date(d));
 }
+
+/** Only http(s) links are ever rendered; anything else (javascript:, data:...) is dropped. */
+export function safeHref(url: string | null | undefined): string | null {
+  if (!url) return null;
+  try {
+    const u = new URL(url);
+    return u.protocol === "https:" || u.protocol === "http:" ? u.toString() : null;
+  } catch {
+    return null;
+  }
+}

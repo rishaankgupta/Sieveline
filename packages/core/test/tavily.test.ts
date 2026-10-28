@@ -105,7 +105,7 @@ describe("TavilyClient", () => {
   it("validates inputs before spending", () => {
     const c = new TavilyClient({ apiKey: "tvly-t", fetch: vi.fn(), clock: fakeClock() });
     expect(() => c.extract({ urls: [] })).toThrow();
-    expect(() => c.createResearch({ input: "x", files: Array(6).fill({ filename: "a.md", content: "" }) })).toThrow(/5 files/);
+    expect(() => c.createResearch({ input: "x", files: Array(6).fill({ name: "a.md", data: "" }) })).toThrow(/5 files/);
     expect(() => c.getResearch("../../etc")).toThrow();
     expect(() => new TavilyClient({ apiKey: "" })).toThrow();
   });

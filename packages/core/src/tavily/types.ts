@@ -92,10 +92,11 @@ export interface CrawlResponse {
   request_id?: string;
 }
 
+/** Field names verified against the live API on 2026-10-28 (422 "Field required" for name/data). */
 export interface ResearchFile {
-  filename: string;
+  name: string;
   /** base64-encoded contents (.txt, .md, .json) */
-  content: string;
+  data: string;
 }
 
 export interface ResearchRequest {
