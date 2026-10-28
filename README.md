@@ -23,6 +23,7 @@ Stack: Next.js on Vercel, Neon Postgres, Vercel Workflow, Tavily (all endpoints)
 | `docs/04-design/DESIGN.md` | Screens, user flows, design system rules |
 | `docs/05-plan/ROADMAP.md` | Milestones, tasks, acceptance criteria, status |
 | `docs/05-plan/DECISIONS-NEEDED.md` | Owner decisions (answered and open) |
+| `docs/07-admin/ADMIN.md` | Everything the admin panel controls, and its security rules |
 | `docs/06-operations/` | Deployment and runbooks (filled in during Milestone 7–8) |
 | `PROGRESS_LOG.md` | Timestamped record of every completed change (UTC) |
 | `.env.example` | Every secret and setting the app needs, with empty placeholders |

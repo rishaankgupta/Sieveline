@@ -18,6 +18,7 @@ Each milestone ends with a **gate**: its checks must pass before the next milest
 | M0-T01 | Planning docs: PRD, architecture, ADRs, security, quality, design, roadmap | M | done | Docs exist and are linked from README |
 | M0-T02 | Owner decisions D1–D4 | S | done (D4 deferred to M3) | Recorded in DECISIONS-NEEDED |
 | M0-T03 | Update plan for shortlist + Advisor chat, Vercel + Neon, full Tavily strategy | S | done | ADR-0004, ADR-0005, TAVILY-STRATEGY.md |
+| M0-T05 | Plan admin panel and Cloudflare role | S | done | ADMIN.md, ADR-0006 |
 | M0-T04 | Git remote (GitHub repo) and push | S | blocked (owner, D9) | Repo URL in README |
 
 **Gate:** owner confirms the name (D1) and the updated plan.
@@ -103,6 +104,26 @@ Each milestone ends with a **gate**: its checks must pass before the next milest
 | M6-T03 | Webhooks: verified, idempotent | S | todo | Replayed event changes nothing |
 | M6-T04 | Usage history page and monthly reset | S | todo | Totals match ledger |
 
+## MA — Admin panel (see `docs/07-admin/ADMIN.md`)
+
+| ID | Task | Size | Status | Done when |
+|---|---|---|---|---|
+| MA-T01 | Platform admin roles, mandatory 2FA, step-up checks, idle timeout | M | todo | Non-admin gets 404 on `/admin`; dangerous actions need fresh 2FA |
+| MA-T02 | Settings store: versioned, cached, rollback; read by pipeline at run start | M | todo | Changing shortlist size takes effect on next run without redeploy |
+| MA-T03 | Overview dashboard (usage, spend, revenue, errors) | M | todo | Numbers match ledger and Stripe |
+| MA-T04 | Users and workspaces: suspend, caps, credit grants/refunds, ownership transfer | M | todo | Each action audited with before/after |
+| MA-T05 | View-as user (read-only, logged, visible to user) | M | todo | Session appears in user's audit log |
+| MA-T06 | Runs and deep dives: cancel, retry stage, re-run, refund | M | todo | Retried stage resumes correctly |
+| MA-T07 | Research settings, models and prompt versions with test-on-sample and rollback | L | todo | Prompt rollback restores previous output on sample |
+| MA-T08 | Templates, blocklists, feature flags, announcements, email templates | M | todo | Each editable and audited |
+| MA-T09 | Plans/pricing synced to Stripe; billing actions | M | todo | Plan edit reflected in Stripe test mode |
+| MA-T10 | Spend controls: global limits, kill switch, per-workspace pause | S | todo | Kill switch stops new steps within 60 s |
+| MA-T11 | Integrations health + "test connection"; secrets status (set / working) only | S | todo | Panel never displays a secret value |
+| MA-T12 | Privacy requests, audit log search/export, system health | M | todo | Export and deletion complete end to end |
+| MA-T13 | Admin staff roles (owner, admin, support, finance, viewer) | S | todo | Permission matrix test passes |
+
+**Gate:** admin permission tests pass; every admin action appears in the audit log.
+
 ## M7 — Hardening
 
 | ID | Task | Size | Status | Done when |
@@ -114,13 +135,13 @@ Each milestone ends with a **gate**: its checks must pass before the next milest
 | M7-T05 | Load test (k6), including chat | S | todo | Targets met |
 | M7-T06 | Neon backups / point-in-time restore drill | S | todo | Drill recorded |
 | M7-T07 | Terms, Privacy, cookie notice (drafts; legal review is yours) | S | todo | Pages live, flagged for review |
-| M7-T08 | Admin console | M | todo | Operator sees runs, failures, spend |
 
 ## M8 — Launch
 
 | ID | Task | Size | Status | Done when |
 |---|---|---|---|---|
-| M8-T01 | Vercel production (paid plan), domain, TLS, email DNS (SPF, DKIM, DMARC) | M | blocked (owner) | Site live; test email passes DMARC |
+| M8-T01 | Vercel production (paid plan); domain + DNS on Cloudflare; TLS; email DNS (SPF, DKIM, DMARC) | M | blocked (owner access) | Site live; test email passes DMARC |
+| M8-T05 | Cloudflare Turnstile on auth forms; R2 bucket for exports (ADR-0006) | S | todo | Bot check blocks scripted sign-up in test; exports served from R2 with expiring links |
 | M8-T02 | Monitoring, uptime checks, spend alerts | S | todo | Test alert received |
 | M8-T03 | Runbooks: deploy, rollback, incident, key rotation | S | todo | Docs in `docs/06-operations/` |
 | M8-T04 | Production smoke test | S | todo | Sign-up → shortlist → chat → export works |

@@ -41,7 +41,7 @@ best companies are not listed for sale. Existing databases are broad, expensive
 13. **Usage metering**: credits used per run and per workspace, with monthly caps.
 14. **Billing**: Stripe checkout, plans, invoices, webhooks (model to be decided, see DECISIONS-NEEDED).
 15. **Audit log**: who ran, exported, changed, or invited what, and when.
-16. **Admin console** (operator only): all workspaces, runs, failures, costs.
+16. **Admin panel**: manage users, workspaces, plans, credits, runs, research settings, AI models and prompts, templates, blocklists, feature flags, billing, spend limits and kill switch, privacy requests, audit log (full list: `docs/07-admin/ADMIN.md`).
 17. **Legal pages**: Terms, Privacy, cookie notice.
 
 ### Should have (soon after launch)
