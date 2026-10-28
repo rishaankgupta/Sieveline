@@ -1,6 +1,6 @@
 import { sql } from "drizzle-orm";
 import {
-  bigserial, boolean, index, integer, jsonb, numeric, pgEnum, pgTable, primaryKey, smallint, text,
+  bigint, bigserial, boolean, index, integer, jsonb, numeric, pgEnum, pgTable, primaryKey, smallint, text,
   timestamp, uniqueIndex, uuid,
 } from "drizzle-orm/pg-core";
 
@@ -25,16 +25,73 @@ export const factKind = pgEnum("fact_kind", [
 export const chatRole = pgEnum("chat_role", ["user", "assistant", "tool"]);
 export const provider = pgEnum("provider", ["tavily", "llm"]);
 
-// ---------------------------------------------------------------- identity (auth tables added in M2)
+// ---------------------------------------------------------------- identity (Better Auth core + 2FA + rate limit)
+// Property names must match Better Auth's field names; columns are snake_case.
 export const users = pgTable("users", {
   id: text("id").primaryKey(),
+  name: text("name").notNull(),
   email: text("email").notNull(),
-  name: text("name"),
+  emailVerified: boolean("email_verified").notNull().default(false),
+  image: text("image"),
+  twoFactorEnabled: boolean("two_factor_enabled").default(false),
   platformRole: platformRole("platform_role").notNull().default("none"),
   suspendedAt: timestamp("suspended_at", { withTimezone: true }),
   createdAt: createdAt(),
   updatedAt: updatedAt(),
 }, (t) => [uniqueIndex("users_email_lower_idx").on(sql`lower(${t.email})`)]);
+
+export const sessions = pgTable("sessions", {
+  id: text("id").primaryKey(),
+  token: text("token").notNull().unique(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  ipAddress: text("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+}, (t) => [index("sessions_user_idx").on(t.userId)]);
+
+export const accounts = pgTable("accounts", {
+  id: text("id").primaryKey(),
+  accountId: text("account_id").notNull(),
+  providerId: text("provider_id").notNull(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  accessToken: text("access_token"),
+  refreshToken: text("refresh_token"),
+  idToken: text("id_token"),
+  accessTokenExpiresAt: timestamp("access_token_expires_at", { withTimezone: true }),
+  refreshTokenExpiresAt: timestamp("refresh_token_expires_at", { withTimezone: true }),
+  scope: text("scope"),
+  password: text("password"),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+}, (t) => [index("accounts_user_idx").on(t.userId), uniqueIndex("accounts_provider_account").on(t.providerId, t.accountId)]);
+
+export const verifications = pgTable("verifications", {
+  id: text("id").primaryKey(),
+  identifier: text("identifier").notNull(),
+  value: text("value").notNull(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  createdAt: createdAt(),
+  updatedAt: updatedAt(),
+}, (t) => [index("verifications_identifier_idx").on(t.identifier)]);
+
+export const twoFactors = pgTable("two_factors", {
+  id: text("id").primaryKey(),
+  secret: text("secret").notNull(),
+  backupCodes: text("backup_codes").notNull(),
+  userId: text("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+  verified: boolean("verified").default(false),
+  failedVerificationCount: integer("failed_verification_count").default(0),
+  lockedUntil: timestamp("locked_until", { withTimezone: true }),
+}, (t) => [index("two_factors_user_idx").on(t.userId)]);
+
+export const rateLimits = pgTable("rate_limits", {
+  id: text("id").primaryKey(),
+  key: text("key").notNull().unique(),
+  count: integer("count").notNull(),
+  lastRequest: bigint("last_request", { mode: "number" }).notNull(),
+});
 
 export const workspaces = pgTable("workspaces", {
   id: id(),

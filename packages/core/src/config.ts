@@ -32,6 +32,13 @@ export const serverEnvSchema = z.object({
   DEFAULT_WORKSPACE_MONTHLY_CREDIT_CAP: z.coerce.number().int().positive().default(1000),
   DEEP_DIVE_MAX_CREDITS: z.coerce.number().int().positive().default(110),
   TURNSTILE_SECRET_KEY: optional,
+  NEXT_PUBLIC_TURNSTILE_SITE_KEY: optional,
+  GOOGLE_CLIENT_ID: optional,
+  GOOGLE_CLIENT_SECRET: optional,
+  EMAIL_PROVIDER_API_KEY: optional,
+  EMAIL_FROM: optional,
+  /** Header the host sets with the real client IP (Vercel overwrites x-forwarded-for). */
+  CLIENT_IP_HEADER: z.string().trim().toLowerCase().default("x-forwarded-for"),
   PLATFORM_OWNER_EMAILS: csv,
   ADMIN_IP_ALLOWLIST: csv,
   SENTRY_DSN: optional,
@@ -63,7 +70,9 @@ export function integrationStatus(env: ServerEnv): Record<string, boolean> {
   return {
     tavily: Boolean(env.TAVILY_API_KEY),
     llm: Boolean(env.LLM_PROVIDER && env.LLM_API_KEY && env.LLM_MODEL_SCORING),
-    turnstile: Boolean(env.TURNSTILE_SECRET_KEY),
+    turnstile: Boolean(env.TURNSTILE_SECRET_KEY && env.NEXT_PUBLIC_TURNSTILE_SITE_KEY),
+    googleSignIn: Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET),
+    email: Boolean(env.EMAIL_PROVIDER_API_KEY && env.EMAIL_FROM),
     errorTracking: Boolean(env.SENTRY_DSN),
   };
 }

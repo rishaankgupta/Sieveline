@@ -39,7 +39,7 @@ beforeAll(async () => {
   await migrate(db, { migrationsFolder: new URL("../migrations", import.meta.url).pathname });
   // Seed as admin role (policies grant it full access).
   await client.exec("SET ROLE sieveline_admin");
-  await db.insert(s.users).values([{ id: "alice", email: "a@x.com" }, { id: "bob", email: "b@x.com" }]);
+  await db.insert(s.users).values([{ id: "alice", name: "Alice", email: "a@x.com" }, { id: "bob", name: "Bob", email: "b@x.com" }]);
   await db.insert(s.workspaces).values([{ id: WS_A, name: "A" }, { id: WS_B, name: "B" }]);
   await db.insert(s.memberships).values([
     { workspaceId: WS_A, userId: "alice", role: "owner" },

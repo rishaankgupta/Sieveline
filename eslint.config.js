@@ -5,7 +5,7 @@ export default tseslint.config(
   {
     ignores: [
       "**/node_modules/**", "**/.next/**", "**/coverage/**", "**/dist/**", ".tmp/**",
-      "**/next-env.d.ts", "packages/db/migrations/**",
+      "**/next-env.d.ts", "packages/db/migrations/**", "**/.workflow-data/**", "**/.workflow-vitest/**", "**/.swc/**", "apps/web/src/app/.well-known/workflow/**",
     ],
   },
   js.configs.recommended,

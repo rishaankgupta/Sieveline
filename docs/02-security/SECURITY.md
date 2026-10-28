@@ -19,7 +19,7 @@ Target: **OWASP ASVS 5.0 Level 2** for the web app, checked in Milestone 7.
 | Threat | Control |
 |---|---|
 | One customer sees another's data | `workspace_id` on every row; permission check in every query; Postgres row-level security as backup; automated tests that try cross-workspace access |
-| Account takeover | Argon2id password hashes; rate limits and lockout on sign-in; email verification; TOTP 2FA (soon after launch); session rotation on sign-in; sign out everywhere |
+| Account takeover | Argon2id password hashes (OWASP params); breached-password check; 12+ character passwords; rate limits and lockout on sign-in; email verification; TOTP 2FA (soon after launch); session rotation on sign-in; sign out everywhere |
 | Stolen API keys | Keys only in server environment / secret manager; never sent to the browser; never logged; separate keys for dev and prod; spend alerts at Tavily and the LLM provider |
 | Runaway cost (bug or abuse) | Credits reserved before a run; hard monthly caps per workspace; per-user run limits; global daily spend ceiling that pauses all new research steps |
 | Prompt injection from website text | LLM has no tools; output is parsed as strict JSON; every claim must quote page text, checked in code; page text is never shown to the LLM as instructions |
@@ -44,6 +44,12 @@ Target: **OWASP ASVS 5.0 Level 2** for the web app, checked in Milestone 7.
 - Users can export and delete their workspace data.
 
 ## 4. Security headers (all responses)
+
+Pages get a per-request Content-Security-Policy with a fresh nonce and `strict-dynamic` (no
+`unsafe-inline` or `unsafe-eval` for scripts in production). Verified on a running server: every
+script tag carried the nonce, and the nonce changed per request. API routes get
+`default-src 'none'`. Plus `X-Frame-Options: DENY`.
+
 
 `Strict-Transport-Security`, `Content-Security-Policy`, `X-Content-Type-Options: nosniff`,
 `Referrer-Policy: strict-origin-when-cross-origin`, `Permissions-Policy`,

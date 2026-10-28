@@ -1,6 +1,6 @@
 # Roadmap
 
-Last updated: 2026-10-28 (M1 started)
+Last updated: 2026-10-28 (M1 nearly done, M2 started)
 
 Status values: `todo`, `in progress`, `blocked`, `done`.
 Size: **S** ≈ under 1 working session, **M** ≈ 1–2 sessions, **L** ≈ 3+ sessions.
@@ -33,9 +33,9 @@ Each milestone ends with a **gate**: its checks must pass before the next milest
 | M1-T04 | Neon project: main + dev branches; preview deploys get their own branch | S | blocked (owner: Neon account) | Migrations run on a fresh branch |
 | M1-T05 | Schema + migrations for all tables in ARCHITECTURE §4 | M | done | Migrations apply and roll back |
 | M1-T06 | Row-level security + workspace context per request | M | done | Query without workspace context returns nothing |
-| M1-T07 | Structured logging, error tracking, request ids | S | todo | Errors arrive with request id, no secrets |
+| M1-T07 | Structured logging, error tracking, request ids | S | in progress (redacting JSON logger done; Sentry needs a free account) | Errors arrive with request id, no secrets |
 | M1-T08 | CI: lint, types, tests, dependency + secret scan; Vercel preview per PR | M | in progress (workflow written; runs when GitHub is connected) | CI green; a planted fake secret is caught |
-| M1-T09 | Vercel Workflow spike: step retries, timeouts, local dev, costs (check current docs) | S | todo | Short report in ADR-0004 |
+| M1-T09 | Vercel Workflow spike: step retries, timeouts, local dev, costs (check current docs) | S | done | Short report in ADR-0004 |
 
 **Gate:** CI green; RLS test passes; Workflow spike confirms the design.
 
@@ -43,13 +43,13 @@ Each milestone ends with a **gate**: its checks must pass before the next milest
 
 | ID | Task | Size | Status | Done when |
 |---|---|---|---|---|
-| M2-T01 | Auth spike and decision (ADR-0003) | S | todo | ADR accepted |
-| M2-T02 | Sign up, verify email, sign in, sign out, reset password | M | todo | E2E test for each flow |
-| M2-T03 | Google sign-in | S | todo | E2E with mocked provider |
-| M2-T04 | Rate limiting on auth, API and chat routes | S | todo | 11th failed sign-in in a minute is blocked |
-| M2-T05 | Workspaces, roles, invites, remove member | M | todo | Permission matrix test passes |
-| M2-T06 | Audit log writes + viewer page | S | todo | Each listed action creates a log row |
-| M2-T07 | Security headers + CSP with nonces | S | todo | Header test passes; no CSP errors |
+| M2-T01 | Auth spike and decision (ADR-0003) | S | done (Better Auth, ADR-0003) | ADR accepted |
+| M2-T02 | Sign up, verify email, sign in, sign out, reset password | M | done (API-level tests on real Postgres; browser E2E after Neon is connected) | E2E test for each flow |
+| M2-T03 | Google sign-in | S | in progress (configured; needs Google OAuth credentials to test) | E2E with mocked provider |
+| M2-T04 | Rate limiting on auth, API and chat routes | S | in progress (auth routes done and tested; API and chat routes when they exist) | 11th failed sign-in in a minute is blocked |
+| M2-T05 | Workspaces, roles, invites, remove member | M | in progress (workspace + owner membership on sign-up; invites and role changes next) | Permission matrix test passes |
+| M2-T06 | Audit log writes + viewer page | S | in progress (writes for workspace creation; viewer page next) | Each listed action creates a log row |
+| M2-T07 | Security headers + CSP with nonces | S | done | Header test passes; no CSP errors |
 
 **Gate:** auth E2E and permission matrix tests pass.
 
@@ -141,7 +141,7 @@ Each milestone ends with a **gate**: its checks must pass before the next milest
 | ID | Task | Size | Status | Done when |
 |---|---|---|---|---|
 | M8-T01 | Vercel production (paid plan); domain + DNS on Cloudflare; TLS; email DNS (SPF, DKIM, DMARC) | M | blocked (owner access) | Site live; test email passes DMARC |
-| M8-T05 | Cloudflare Turnstile on auth forms; R2 bucket for exports (ADR-0006) | S | todo | Bot check blocks scripted sign-up in test; exports served from R2 with expiring links |
+| M8-T05 | Cloudflare Turnstile on auth forms; R2 bucket for exports (ADR-0006) | S | in progress (Turnstile wired into sign-up/sign-in; R2 later) | Bot check blocks scripted sign-up in test; exports served from R2 with expiring links |
 | M8-T02 | Monitoring, uptime checks, spend alerts | S | todo | Test alert received |
 | M8-T03 | Runbooks: deploy, rollback, incident, key rotation | S | todo | Docs in `docs/06-operations/` |
 | M8-T04 | Production smoke test | S | todo | Sign-up → shortlist → chat → export works |

@@ -2,6 +2,8 @@ packages:
   - apps/*
   - packages/*
 allowBuilds:
+  '@swc/core': true
+  cbor-extract: false
   esbuild: true
 overrides:
   # drizzle-kit pulls an old esbuild via @esbuild-kit (GHSA-67mh-4wv8-2f99, dev-only).

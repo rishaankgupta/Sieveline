@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { headers } from "next/headers";
 import type { ReactNode } from "react";
 import "./globals.css";
 
@@ -15,7 +16,12 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({ children }: { children: ReactNode }) {
+/**
+ * Reading request headers makes every page render per request, which is required for the
+ * per-request CSP nonce (set in proxy.ts) to be applied to Next.js scripts.
+ */
+export default async function RootLayout({ children }: { children: ReactNode }) {
+  await headers();
   return (
     <html lang="en">
       <body className="min-h-dvh">

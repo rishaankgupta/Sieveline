@@ -2,6 +2,7 @@ export * from "./budget";
 export * from "./config";
 export * from "./csv";
 export * from "./domain";
+export * from "./log";
 export * from "./quotes";
 export * from "./scoring";
 export * from "./signals";

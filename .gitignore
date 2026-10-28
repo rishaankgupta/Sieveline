@@ -12,3 +12,6 @@ test-results/
 .tmp/
 *.tsbuildinfo
 next-env.d.ts
+.workflow-data/
+.workflow-vitest/
+apps/web/src/app/.well-known/workflow/
