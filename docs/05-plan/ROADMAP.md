@@ -46,7 +46,7 @@ Each milestone ends with a **gate**: its checks must pass before the next milest
 | M2-T01 | Auth spike and decision (ADR-0003) | S | done (Better Auth, ADR-0003) | ADR accepted |
 | M2-T02 | Sign up, verify email, sign in, sign out, reset password | M | done (API-level tests on real Postgres; browser E2E after Neon is connected) | E2E test for each flow |
 | M2-T03 | Google sign-in | S | in progress (configured; needs Google OAuth credentials to test) | E2E with mocked provider |
-| M2-T04 | Rate limiting on auth, API and chat routes | S | in progress (auth routes done and tested; API and chat routes when they exist) | 11th failed sign-in in a minute is blocked |
+| M2-T04 | Rate limiting on auth, API and chat routes | S | done (auth via Better Auth; runs, deep dives, chat, drafts, invites, exports, reviews limited in Postgres, shared by all instances) | 11th failed sign-in in a minute is blocked |
 | M2-T05 | Workspaces, roles, invites, remove member | M | done (invites with hashed one-time tokens, role changes, remove/leave, last-owner protection) | Permission matrix test passes |
 | M2-T06 | Audit log writes + viewer page | S | in progress (writes + API + team-page audit list done; admin viewer in MA) | Each listed action creates a log row |
 | M2-T07 | Security headers + CSP with nonces | S | done | Header test passes; no CSP errors |
