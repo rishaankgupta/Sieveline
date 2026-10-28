@@ -17,10 +17,15 @@ describe("GET /api/health", () => {
     expect(res.headers.get("cache-control")).toBe("no-store");
   });
 
-  it("returns 503 without details when misconfigured", async () => {
-    vi.stubEnv("APP_URL", "");
+  it("returns 503 naming the bad variables, never their values", async () => {
+    vi.stubEnv("APP_URL", "https://sieveline.test");
+    vi.stubEnv("AUTH_SECRET", "too-short-secret-value");
+    vi.stubEnv("DATABASE_URL", "postgres://u:p@h/db");
+    vi.stubEnv("TAVILY_API_KEY", "sk-not-a-tavily-key");
     const res = GET();
     expect(res.status).toBe(503);
-    expect(await res.json()).toEqual({ status: "misconfigured" });
+    const body = await res.json();
+    expect(body).toEqual({ status: "misconfigured", variables: ["AUTH_SECRET", "TAVILY_API_KEY"] });
+    expect(JSON.stringify(body)).not.toMatch(/too-short|sk-not/);
   });
 });
