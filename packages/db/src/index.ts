@@ -1,5 +1,6 @@
-export * as schema from "./schema";
-export { TENANT_TABLES } from "./schema";
-export { withTenant, type TenantContext } from "./tenant";
-export { createWorkspaceForUser, listUserWorkspaces, type AnyDb } from "./workspaces";
-export { createDb, type Db } from "./client";
+export * as schema from "./schema.ts";
+export { TENANT_TABLES } from "./schema.ts";
+export { withTenant, type TenantContext } from "./tenant.ts";
+export { createWorkspaceForUser, listUserWorkspaces, type AnyDb } from "./workspaces.ts";
+export { createDb, type Db } from "./client.ts";
+export * from "./research.ts";

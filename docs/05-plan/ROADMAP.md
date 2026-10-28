@@ -1,6 +1,6 @@
 # Roadmap
 
-Last updated: 2026-10-28 (M1 nearly done, M2 started)
+Last updated: 2026-10-28 (M3 research engine mostly built)
 
 Status values: `todo`, `in progress`, `blocked`, `done`.
 Size: **S** ≈ under 1 working session, **M** ≈ 1–2 sessions, **L** ≈ 3+ sessions.
@@ -47,7 +47,7 @@ Each milestone ends with a **gate**: its checks must pass before the next milest
 | M2-T02 | Sign up, verify email, sign in, sign out, reset password | M | done (API-level tests on real Postgres; browser E2E after Neon is connected) | E2E test for each flow |
 | M2-T03 | Google sign-in | S | in progress (configured; needs Google OAuth credentials to test) | E2E with mocked provider |
 | M2-T04 | Rate limiting on auth, API and chat routes | S | in progress (auth routes done and tested; API and chat routes when they exist) | 11th failed sign-in in a minute is blocked |
-| M2-T05 | Workspaces, roles, invites, remove member | M | in progress (workspace + owner membership on sign-up; invites and role changes next) | Permission matrix test passes |
+| M2-T05 | Workspaces, roles, invites, remove member | M | in progress (permission matrix + workspace on sign-up done; invites and role changes next) | Permission matrix test passes |
 | M2-T06 | Audit log writes + viewer page | S | in progress (writes for workspace creation; viewer page next) | Each listed action creates a log row |
 | M2-T07 | Security headers + CSP with nonces | S | done | Header test passes; no CSP errors |
 
@@ -57,15 +57,15 @@ Each milestone ends with a **gate**: its checks must pass before the next milest
 
 | ID | Task | Size | Status | Done when |
 |---|---|---|---|---|
-| M3-T01 | Tavily client for Search, Map, Extract, Crawl, Research (+ polling/stream), Usage; per-endpoint rate limiters; `Retry-After`; timeouts | L | in progress (client + mocked contract tests done; real recordings in M3-T10) | Contract tests against recorded responses for every endpoint |
-| M3-T02 | Response cache in Postgres with expiry | S | todo | Repeat call makes no network request |
-| M3-T03 | LLM client via AI SDK; strict JSON schemas; timeouts | S | todo | Malformed output handled without crashing a run |
-| M3-T04 | Credit ledger: reserve, reconcile from `usage.credits`, monthly caps, global daily ceiling, daily check against Tavily usage endpoint | M | in progress (reservation logic + tests done; DB persistence next) | Tests: run stops at cap; unused credits released; >5% drift alerts |
+| M3-T01 | Tavily client for Search, Map, Extract, Crawl, Research (+ polling/stream), Usage; per-endpoint rate limiters; `Retry-After`; timeouts | L | in progress (all endpoints done and tested with mocks and a fake HTTP server; real recordings in M3-T10) | Contract tests against recorded responses for every endpoint |
+| M3-T02 | Response cache in Postgres with expiry | S | done | Repeat call makes no network request |
+| M3-T03 | LLM client via AI SDK; strict JSON schemas; timeouts | S | done (AI SDK, any OpenAI-compatible provider; tested against a fake server) | Malformed output handled without crashing a run |
+| M3-T04 | Credit ledger: reserve, reconcile from `usage.credits`, monthly caps, global daily ceiling, daily check against Tavily usage endpoint | M | in progress (reservation, caps, daily ceiling, per-call budget guard done; daily reconcile with Tavily usage endpoint next) | Tests: run stops at cap; unused credits released; >5% drift alerts |
 | M3-T05 | Port prototype logic: signals, quote check, scoring (with tests) | M | done | Prototype cases reproduced; ≥ 90% coverage |
-| M3-T06 | Query planner: thesis → 10–30 search variants | S | todo | Eval: variants find ≥ 20% more unique domains than fixed templates |
-| M3-T07 | Pipeline stages 1–12 as Workflow steps; batching; resume; watchdog | L | todo | Kill mid-run → resumes and finishes |
-| M3-T08 | Red-flag news checks and Crawl deep read for top candidates | M | todo | Flags appear with dates and links |
-| M3-T09 | Seed CSV import with validation and limits | S | todo | Bad files rejected with clear errors |
+| M3-T06 | Query planner: thesis → 10–30 search variants | S | in progress (planner done; the 20% eval needs real data in M3-T10) | Eval: variants find ≥ 20% more unique domains than fixed templates |
+| M3-T07 | Pipeline stages 1–12 as Workflow steps; batching; resume; watchdog | L | in progress (stages as durable steps, early stop on credits, end-to-end test done; stuck-run watchdog next) | Kill mid-run → resumes and finishes |
+| M3-T08 | Red-flag news checks and Crawl deep read for top candidates | M | done | Flags appear with dates and links |
+| M3-T09 | Seed CSV import with validation and limits | S | in progress (API accepts a validated seed domain list; CSV upload UI in M4) | Bad files rejected with clear errors |
 | M3-T10 | **Real-data spike (needs Tavily + LLM keys):** calibration labs | M | blocked (keys) | Report: text rate, accuracy on 50 hand-checked rows, credits per stage, time |
 
 **Gate:** real-data report meets QUALITY.md §5, or a written decision on what to change.

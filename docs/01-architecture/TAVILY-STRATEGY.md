@@ -35,6 +35,15 @@ flowchart TD
 
 Every request sets `include_usage: true` so we bill and cap from Tavily's own numbers, not guesses.
 
+## Implementation status (2026-10-28)
+
+Implemented in `packages/core/src/research/` and `apps/web/src/workflows/research.ts`:
+search fan-out with LLM query planning (templates first, operators stripped), Map with
+instructions and same-site page picking, Extract with query-ranked chunks and advanced retry only
+for failed URLs, news red-flag checks (succession treated as a signal), Crawl deep read for the top
+companies, and a per-call budget guard that refuses any call whose worst case exceeds the run's
+remaining reservation. Research (deep dives) is in the client and ships with the shortlist UI (M5-T05).
+
 ## Engineering rules
 
 - **Rate limits** (docs, production key): 1,000 requests/min general, 100/min Crawl,

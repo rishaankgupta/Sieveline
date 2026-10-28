@@ -13,7 +13,7 @@ export default async function AppHome() {
   const { auth, db } = app();
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) redirect("/sign-in?next=/app");
-  const workspaces = await listUserWorkspaces(db as never, session.user.id);
+  const workspaces = await listUserWorkspaces(db, session.user.id);
 
   return (
     <main id="main" className="mx-auto max-w-3xl px-6 py-12">

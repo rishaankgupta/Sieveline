@@ -4,7 +4,7 @@ import {
   parseThesis, pickShortlist, rankCompanies, reserve, scoreCompany, settle, toCsv, toDomain,
   underDailyCeiling, verifyQuote, integrationStatus, creditsToUsd, maxCrawlCredits,
   maxExtractCredits, maxMapCredits, maxSearchCredits, normalizeForMatch,
-} from "../src/index";
+} from "../src/index.ts";
 import calibration from "../templates/calibration-labs-us.json" with { type: "json" };
 
 const thesis = parseThesis(calibration);

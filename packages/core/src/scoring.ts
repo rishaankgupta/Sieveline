@@ -1,5 +1,5 @@
-import type { Signals } from "./signals";
-import type { Thesis } from "./thesis";
+import type { Signals } from "./signals.ts";
+import type { Thesis } from "./thesis.ts";
 
 export type Answer = "yes" | "no" | "unknown";
 

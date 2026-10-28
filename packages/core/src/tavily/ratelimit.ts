@@ -16,11 +16,14 @@ export const realClock: Clock = {
 export class SlidingWindowLimiter {
   private readonly stamps: number[] = [];
 
-  constructor(
-    private readonly limit: number,
-    private readonly windowMs: number,
-    private readonly clock: Clock = realClock,
-  ) {
+  private readonly limit: number;
+  private readonly windowMs: number;
+  private readonly clock: Clock;
+
+  constructor(limit: number, windowMs: number, clock: Clock = realClock) {
+    this.limit = limit;
+    this.windowMs = windowMs;
+    this.clock = clock;
     if (limit < 1 || windowMs < 1) throw new Error("limit and windowMs must be positive");
   }
 

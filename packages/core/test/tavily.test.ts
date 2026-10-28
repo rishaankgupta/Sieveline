@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { SlidingWindowLimiter, TavilyClient, TavilyError, type Clock, type TavilyCache } from "../src/index";
+import { SlidingWindowLimiter, TavilyClient, TavilyError, type Clock, type TavilyCache } from "../src/index.ts";
 
 function fakeClock(): Clock & { t: number; sleeps: number[] } {
   const c = {

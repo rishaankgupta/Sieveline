@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { createLogger, redact } from "../src/index";
+import { createLogger, redact } from "../src/index.ts";
 
 describe("logger", () => {
   it("writes one JSON line with base fields and respects level", () => {

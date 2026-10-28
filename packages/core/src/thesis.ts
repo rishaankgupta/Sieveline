@@ -23,6 +23,8 @@ export const thesisSchema = z
     description: z.string().trim().min(20).max(2000),
     country: z.string().trim().min(2).max(60).default("united states"),
     places: z.array(z.string().trim().min(2).max(80)).max(60).default([]),
+    /** Core phrases that describe the kind of company, e.g. "ISO 17025 calibration laboratory". */
+    searchTerms: z.array(z.string().trim().min(3).max(120)).max(12).default([]),
     minYearsInBusiness: z.number().int().min(0).max(200).nullable().default(null),
     criteria: z.array(criterionSchema).min(1).max(12),
     excludeIfMentions: z.array(z.string().trim().min(2).max(120)).max(100).default([]),

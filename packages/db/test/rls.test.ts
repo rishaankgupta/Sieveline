@@ -3,8 +3,8 @@ import { sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/pglite";
 import { migrate } from "drizzle-orm/pglite/migrator";
 import { beforeAll, describe, expect, it } from "vitest";
-import { TENANT_TABLES, withTenant } from "../src/index";
-import * as s from "../src/schema";
+import { TENANT_TABLES, withTenant } from "../src/index.ts";
+import * as s from "../src/schema.ts";
 
 const WS_A = "00000000-0000-4000-8000-00000000000a";
 const WS_B = "00000000-0000-4000-8000-00000000000b";

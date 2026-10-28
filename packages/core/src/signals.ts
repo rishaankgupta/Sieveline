@@ -1,4 +1,4 @@
-import { contextAround } from "./text";
+import { contextAround } from "./text.ts";
 
 const FOUNDED_RE =
   /\b(?:founded|established|incorporated|since|est\.)\s*(?:in\s+)?((?:18|19|20)\d{2})\b/gi;

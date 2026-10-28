@@ -1,4 +1,4 @@
-import type { CrawlRequest, ExtractRequest, MapRequest, SearchRequest } from "./types";
+import type { CrawlRequest, ExtractRequest, MapRequest, SearchRequest } from "./types.ts";
 
 /**
  * Worst-case credit cost per request, from Tavily's Credits & Pricing docs (read 2026-10-28).

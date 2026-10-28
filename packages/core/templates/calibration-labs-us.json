@@ -2,6 +2,7 @@
   "name": "Independent calibration labs (US)",
   "description": "Independent, owner-run US companies whose main business is calibrating measuring instruments for manufacturers in aerospace, medical devices, pharma, defense and automotive. Ideally 15+ years old, ISO/IEC 17025 accredited, offering on-site calibration, and not owned by private equity or a larger group.",
   "country": "united states",
+  "searchTerms": ["ISO 17025 accredited calibration laboratory", "independent calibration services company", "on-site instrument calibration services"],
   "places": ["Texas", "Ohio", "Pennsylvania", "Michigan", "North Carolina"],
   "minYearsInBusiness": 15,
   "strongFitScore": 6,

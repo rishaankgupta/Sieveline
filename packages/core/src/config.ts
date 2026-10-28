@@ -28,6 +28,15 @@ export const serverEnvSchema = z.object({
   LLM_BASE_URL: optional,
   LLM_MODEL_SCORING: optional,
   LLM_MODEL_CHAT: optional,
+  /** Whether the provider supports JSON-schema structured outputs (OpenAI and most compatible APIs do). */
+  LLM_STRUCTURED_OUTPUTS: z.enum(["true", "false"]).default("true").transform((v) => v === "true"),
+  /** USD per million tokens, for cost tracking and caps. Set from the provider's price list. */
+  LLM_PRICE_INPUT_PER_MTOK: z.coerce.number().min(0).default(0),
+  LLM_PRICE_OUTPUT_PER_MTOK: z.coerce.number().min(0).default(0),
+  /** Test-only override; must be https in production. */
+  TAVILY_BASE_URL: z.string().url().default("https://api.tavily.com"),
+  /** Separate connection for the admin panel (login role in sieveline_admin). */
+  DATABASE_URL_ADMIN: optional,
   GLOBAL_DAILY_TAVILY_CREDIT_LIMIT: z.coerce.number().int().positive().default(2000),
   DEFAULT_WORKSPACE_MONTHLY_CREDIT_CAP: z.coerce.number().int().positive().default(1000),
   DEEP_DIVE_MAX_CREDITS: z.coerce.number().int().positive().default(110),
@@ -47,8 +56,10 @@ export const serverEnvSchema = z.object({
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
 
 export class ConfigError extends Error {
-  constructor(readonly problems: string[]) {
+  readonly problems: string[];
+  constructor(problems: string[]) {
     super(`Invalid server configuration:\n- ${problems.join("\n- ")}`);
+    this.problems = problems;
     this.name = "ConfigError";
   }
 }
@@ -59,8 +70,11 @@ export function loadServerEnv(source: Record<string, string | undefined> = proce
     throw new ConfigError(parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`));
   }
   const env = parsed.data;
-  if (env.NODE_ENV === "production" && env.APP_URL.startsWith("http://")) {
-    throw new ConfigError(["APP_URL: must use https in production"]);
+  if (env.NODE_ENV === "production") {
+    const problems: string[] = [];
+    if (env.APP_URL.startsWith("http://")) problems.push("APP_URL: must use https in production");
+    if (!env.TAVILY_BASE_URL.startsWith("https://")) problems.push("TAVILY_BASE_URL: must use https in production");
+    if (problems.length) throw new ConfigError(problems);
   }
   return env;
 }

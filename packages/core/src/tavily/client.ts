@@ -1,9 +1,9 @@
 import { createHash } from "node:crypto";
-import { type Clock, type EndpointGroup, realClock, SlidingWindowLimiter, TAVILY_LIMITS } from "./ratelimit";
+import { type Clock, type EndpointGroup, realClock, SlidingWindowLimiter, TAVILY_LIMITS } from "./ratelimit.ts";
 import type {
   CrawlRequest, CrawlResponse, ExtractRequest, ExtractResponse, MapRequest, MapResponse,
   ResearchCreated, ResearchRequest, ResearchStatus, SearchRequest, SearchResponse, UsageResponse,
-} from "./types";
+} from "./types.ts";
 
 export const TAVILY_BASE_URL = "https://api.tavily.com";
 
@@ -22,13 +22,14 @@ export type UsageListener = (event: {
 }) => void | Promise<void>;
 
 export class TavilyError extends Error {
-  constructor(
-    message: string,
-    readonly status: number,
-    readonly retryable: boolean,
-    readonly code: "bad_request" | "unauthorized" | "forbidden" | "rate_limited" | "plan_limit" | "paygo_limit" | "server" | "network" | "timeout",
-  ) {
+  readonly status: number;
+  readonly retryable: boolean;
+  readonly code: "bad_request" | "unauthorized" | "forbidden" | "rate_limited" | "plan_limit" | "paygo_limit" | "server" | "network" | "timeout";
+  constructor(message: string, status: number, retryable: boolean, code: TavilyError["code"]) {
     super(message);
+    this.status = status;
+    this.retryable = retryable;
+    this.code = code;
     this.name = "TavilyError";
   }
 }
@@ -53,7 +54,10 @@ export class TavilyClient {
   private readonly limiters: Record<EndpointGroup, SlidingWindowLimiter>;
   private readonly clock: Clock;
 
-  constructor(private readonly opts: TavilyClientOptions) {
+  private readonly opts: TavilyClientOptions;
+
+  constructor(opts: TavilyClientOptions) {
+    this.opts = opts;
     if (!opts.apiKey) throw new Error("Tavily API key is required");
     this.fetchImpl = opts.fetch ?? globalThis.fetch;
     this.clock = opts.clock ?? realClock;

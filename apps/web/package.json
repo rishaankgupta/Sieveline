@@ -11,21 +11,25 @@
     "test": "vitest run && vitest run --config vitest.integration.config.ts"
   },
   "dependencies": {
+    "@ai-sdk/openai-compatible": "3.0.80",
     "@better-auth/drizzle-adapter": "1.7.14",
     "@neondatabase/serverless": "^1.2.0",
     "@node-rs/argon2": "2.2.2",
     "@sieveline/core": "workspace:*",
     "@sieveline/db": "workspace:*",
+    "ai": "7.0.155",
     "better-auth": "1.7.14",
     "drizzle-orm": "^0.45.4",
     "next": "16.4.3",
     "react": "19.3.1",
     "react-dom": "19.3.1",
     "server-only": "^0.0.1",
-    "workflow": "5.2.3"
+    "workflow": "5.2.3",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.5.12",
+    "@electric-sql/pglite-socket": "^0.2.15",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^22.20.5",
     "@types/react": "^19.3.0",

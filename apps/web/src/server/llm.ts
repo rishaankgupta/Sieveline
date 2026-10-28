@@ -1,0 +1,45 @@
+import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
+import { LlmOutputError, type LlmClient, type ServerEnv } from "@sieveline/core";
+import { generateText, Output } from "ai";
+
+/**
+ * LLM adapter over any OpenAI-compatible API (OpenAI, Groq, Nebius Token Factory, OpenRouter,
+ * Together, local servers...). Provider is chosen with D4; only env vars change.
+ * Returns null when not configured, so research still runs (without question answering).
+ */
+export function createLlm(env: ServerEnv, fetchImpl?: typeof fetch): LlmClient | null {
+  if (!env.LLM_API_KEY || !env.LLM_BASE_URL || !env.LLM_MODEL_SCORING) return null;
+  const provider = createOpenAICompatible({
+    name: env.LLM_PROVIDER ?? "llm",
+    baseURL: env.LLM_BASE_URL,
+    apiKey: env.LLM_API_KEY,
+    supportsStructuredOutputs: env.LLM_STRUCTURED_OUTPUTS,
+    ...(fetchImpl ? { fetch: fetchImpl } : {}),
+  });
+  const modelFor = (task: string) =>
+    provider.chatModel(task === "chat" ? (env.LLM_MODEL_CHAT ?? env.LLM_MODEL_SCORING!) : env.LLM_MODEL_SCORING!);
+
+  return {
+    async json({ schema, system, prompt, task, maxOutputTokens }) {
+      let result;
+      try {
+        result = await generateText({
+          model: modelFor(task),
+          output: Output.object({ schema }),
+          system,
+          prompt,
+          temperature: 0,
+          maxOutputTokens: maxOutputTokens ?? 1500,
+          maxRetries: 2,
+          abortSignal: AbortSignal.timeout(90_000),
+        });
+      } catch (e) {
+        throw new LlmOutputError(e instanceof Error ? e.name : "LLM call failed");
+      }
+      const input = result.usage.inputTokens ?? 0;
+      const output = result.usage.outputTokens ?? 0;
+      const costUsd = (input * env.LLM_PRICE_INPUT_PER_MTOK + output * env.LLM_PRICE_OUTPUT_PER_MTOK) / 1_000_000;
+      return { value: result.output, costUsd };
+    },
+  };
+}

@@ -1,4 +1,4 @@
-import { normalizeForMatch } from "./text";
+import { normalizeForMatch } from "./text.ts";
 
 export const MIN_QUOTE_WORDS = 3;
 export const MAX_QUOTE_WORDS = 60;

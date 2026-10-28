@@ -1,8 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { eq } from "drizzle-orm";
 import type { PgDatabase, PgQueryResultHKT } from "drizzle-orm/pg-core";
-import * as s from "./schema";
-import { withTenant } from "./tenant";
+import * as s from "./schema.ts";
+import { withTenant } from "./tenant.ts";
 
 /** Any Drizzle Postgres database using this schema (Neon in production, PGlite in tests). */
 export type AnyDb = PgDatabase<PgQueryResultHKT, typeof s>;
