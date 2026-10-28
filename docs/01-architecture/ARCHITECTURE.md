@@ -6,44 +6,53 @@ Last updated: 2026-10-28. Proposed; becomes final when the ADRs are accepted.
 
 ```mermaid
 flowchart LR
-  U[Browser] -->|HTTPS| W[Web app<br/>Next.js, TypeScript]
-  W --> DB[(PostgreSQL)]
-  W -->|enqueue job| Q[(Job queue<br/>pg-boss in Postgres)]
-  Q --> K[Worker<br/>Node, TypeScript]
-  K -->|search / extract| T[Tavily API]
-  K -->|questions + quotes| L[LLM API<br/>OpenAI-compatible]
-  K --> DB
+  U[Browser] -->|HTTPS| W[Next.js on Vercel<br/>pages, API, Advisor chat]
+  W --> DB[(Neon Postgres)]
+  W -->|start run| WF[Vercel Workflow<br/>durable research steps]
+  WF -->|search, map, extract, crawl, research| T[Tavily API]
+  WF -->|scoring with quotes| L[LLM API]
+  W -->|Advisor chat, tools| L
+  WF --> DB
   W -->|checkout, webhooks| S[Stripe]
   W -->|transactional email| E[Email provider]
-  W & K --> O[Error tracking + logs + metrics]
+  W & WF --> O[Error tracking + logs + metrics]
 ```
 
-One language (TypeScript) everywhere. One database (Postgres) also holds the job queue,
-so there is no Redis to run. The web app never calls Tavily or the LLM directly; only the
-worker does. That keeps slow and expensive calls out of web requests.
+Hosting is Vercel; the database is Neon (ADR-0004). One language (TypeScript) everywhere.
+Page requests never call Tavily directly; research runs in durable Workflow steps.
+The only Tavily call started from the chat is a deep dive, and it runs as a Workflow too.
 
 ## 2. Components
 
 | Component | Responsibility |
 |---|---|
 | **Web app** | Pages, API routes, auth, permissions, validation, billing webhooks |
-| **Worker** | Runs research jobs step by step, retries, budget checks, progress updates |
-| **Postgres** | All data, the job queue, and the response cache |
-| **Shared package** | Types, input schemas, scoring rules, used by web and worker |
+| **Research workflow** | Pipeline steps, retries, budget checks, progress updates (Vercel Workflow) |
+| **Advisor** | Grounded chat over a run's evidence; typed tools for filter, rank, compare, pin, deep dive (ADR-0005) |
+| **Neon Postgres** | All data and the Tavily response cache |
+| **`packages/core`** | Pipeline logic, scoring, signals, quote check, Tavily client; plain functions, no Vercel APIs |
 
 ## 3. Research pipeline (one run)
 
-Each step is a separate job, so a crash resumes from the last finished step.
+Each stage is a Workflow step (large stages are split into batches), so a failure retries only
+that piece. Full Tavily details: `TAVILY-STRATEGY.md`.
 
-1. **Plan**: expand the thesis into search queries; compute the credit ceiling; reserve credits.
-2. **Discover**: Tavily Search per query; drop directories and excluded domains; deduplicate by domain.
+1. **Plan**: LLM turns the thesis into 10–30 search queries; compute and reserve the credit ceiling.
+2. **Discover**: Tavily Search fan-out; drop directories and excluded domains; deduplicate by domain.
 3. **Merge seeds**: add the buyer's uploaded companies.
-4. **Read**: Tavily Extract in batches; store page text per company.
-5. **Signals**: founded year, ownership words, parent-company / PE phrases (rules ported from the prototype).
-6. **Verify**: the LLM answers each thesis question using only page text. Each yes/no must include
-   a quote; the worker checks the quote is really in the page. If not, the answer becomes "unknown".
-7. **Score and rank**: weights from the thesis; required questions can fail a company.
-8. **Finish**: release unused reserved credits; notify the user.
+4. **Map**: Tavily Map with instructions finds each candidate's About / History / Team / Services pages.
+5. **Read**: Tavily Extract on those pages with query-ranked chunks; retry failures at advanced depth.
+6. **Signals**: founded year, ownership words, parent-company / PE phrases (ported from the prototype).
+7. **Verify**: the LLM answers each thesis question using only page text. Each yes/no must include
+   a quote; code checks the quote is really in the page. If not, the answer becomes "unknown".
+8. **Score and rank** all candidates.
+9. **Red-flag check** (top ~25): Tavily news Search for acquisitions, lawsuits, ownership changes.
+10. **Deep read** (top ~10): Tavily Crawl with instructions; re-verify and re-rank.
+11. **Shortlist**: pick the top 10 with a one-line reason and best evidence each.
+12. **Finish**: release unused reserved credits; notify the user.
+
+**On demand:** a **deep dive** runs Tavily Research with a fixed output schema and our evidence
+attached as files, for companies the buyer chooses.
 
 Website text goes to the LLM as data only. The LLM has no tools and cannot browse, so text on
 a website cannot make it take actions (prompt-injection containment).
@@ -62,6 +71,9 @@ a website cannot make it take actions (prompt-injection containment).
 | `facts` | company_id, kind (founded_year, criterion, parent_flag…), value, quote, source_url |
 | `reviews` | company_id, user_id, decision, note |
 | `usage_events` | workspace_id, run_id, provider, credits, cost_usd, created_at |
+| `shortlist_items` | run_id, company_id, position, reason, pinned, hidden |
+| `chat_threads` / `chat_messages` | run_id, user_id, role, content, cited_fact_ids, tool_calls |
+| `deep_dives` | company_id, tavily_request_id, status, dossier (JSON), credits_used |
 | `api_cache` | request_hash, provider, response, created_at, expires_at |
 | `audit_log` | workspace_id, user_id, action, target, ip_hash, created_at |
 | `billing` | workspace_id, stripe_customer_id, subscription status |
@@ -75,16 +87,18 @@ line of defense behind application checks (see SECURITY.md).
 |---|---|---|
 | Web | Next.js (App Router) + TypeScript | Mature, server rendering, one codebase for UI and API |
 | UI | Tailwind CSS + accessible headless components (Radix-based) | Fast, consistent, keyboard and screen-reader support |
-| Database | PostgreSQL 16+ | Reliable, row-level security, JSON support |
-| ORM / migrations | Drizzle | Typed queries, plain SQL migrations |
-| Queue | pg-boss | Jobs in Postgres; retries and scheduling without Redis |
+| Hosting | Vercel | Owner's choice (ADR-0004) |
+| Database | Neon Postgres | Owner's choice; serverless, branch per preview deploy, row-level security |
+| ORM / migrations | Drizzle | Typed queries, plain SQL migrations, works with Neon |
+| Background runs | Vercel Workflow | Durable, retryable steps on Vercel (ADR-0004) |
+| Chat | Vercel AI SDK | Streaming, typed tool calls, many LLM providers |
 | Auth | Better Auth (or Auth.js; decided in ADR-0003) | Email/password, OAuth, sessions in our DB |
 | Validation | Zod | One schema for forms, API and worker |
 | Payments | Stripe | Checkout, subscriptions, tax, webhooks |
 | Email | Resend or Postmark | Transactional email with domain authentication |
 | Errors / tracing | Sentry + OpenTelemetry | Find errors and slow paths |
 | Tests | Vitest, Playwright, axe-core | Unit, end-to-end, accessibility |
-| Deploy | Docker images; host decided in DECISIONS-NEEDED | Same image runs locally and in production |
+| Local dev | Neon dev branch (or local Postgres container) | Same schema as production |
 
 Exact versions are pinned in the lockfile when the project is created; this document does not
 claim specific version numbers.

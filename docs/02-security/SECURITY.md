@@ -23,6 +23,7 @@ Target: **OWASP ASVS 5.0 Level 2** for the web app, checked in Milestone 7.
 | Stolen API keys | Keys only in server environment / secret manager; never sent to the browser; never logged; separate keys for dev and prod; spend alerts at Tavily and the LLM provider |
 | Runaway cost (bug or abuse) | Credits reserved before a run; hard monthly caps per workspace; per-user run limits; global daily spend ceiling that pauses the worker |
 | Prompt injection from website text | LLM has no tools; output is parsed as strict JSON; every claim must quote page text, checked in code; page text is never shown to the LLM as instructions |
+| Advisor chat misuse (jailbreak, data from other workspaces, surprise spending) | Tools are typed and scoped to the current run; server re-checks permissions on every tool call; deep dives need explicit user confirmation; per-workspace chat message and token caps; cited fact ids validated server-side |
 | Formula injection in exports | Cells starting with `= + - @` (and tab/CR) are prefixed so Excel does not run them |
 | Malicious CSV upload | Size and row limits; strict parsing; only domains accepted; private/internal hostnames rejected |
 | XSS | React escaping; no raw HTML from websites rendered; strict Content-Security-Policy with nonces |

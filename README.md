@@ -1,11 +1,14 @@
-# TargetFinder Platform (working name)
+# Sieveline
 
-A web app that builds researched lists of small companies a buyer could acquire.
-The buyer describes what they want (a "thesis"). The system finds matching company websites,
-reads them, checks each company against the buyer's rules, and shows the results with the
-exact website sentence behind every fact.
+Sieveline helps people who want to buy a small business find the right ones.
+The buyer describes what they want. Sieveline researches the web widely, checks every company
+against the buyer's rules with a quote as proof, and shows a **short list of the best 10**.
+The buyer then **chats with the results** to filter, compare, and pick, and can order a deep dive
+on any company.
 
-> Status: **Milestone 0 (planning)**. No application code yet. See `docs/05-plan/ROADMAP.md`.
+Stack: Next.js on Vercel, Neon Postgres, Vercel Workflow, Tavily (all endpoints), any LLM.
+
+> Status: **Milestone 0 (planning) complete; M1 next**. No application code yet. See `docs/05-plan/ROADMAP.md`.
 
 ## Where things are
 
@@ -13,12 +16,13 @@ exact website sentence behind every fact.
 |---|---|
 | `docs/00-product/PRD.md` | What we are building, for whom, and what is out of scope |
 | `docs/01-architecture/ARCHITECTURE.md` | System design, data model, research pipeline |
+| `docs/01-architecture/TAVILY-STRATEGY.md` | How every Tavily endpoint is used, costs, rate limits |
 | `docs/01-architecture/adr/` | Architecture decision records (one decision per file) |
 | `docs/02-security/SECURITY.md` | Threat model and security controls |
 | `docs/03-quality/QUALITY.md` | Performance budgets, reliability targets, accessibility, testing |
 | `docs/04-design/DESIGN.md` | Screens, user flows, design system rules |
 | `docs/05-plan/ROADMAP.md` | Milestones, tasks, acceptance criteria, status |
-| `docs/05-plan/DECISIONS-NEEDED.md` | Questions the owner must answer, and the default used until then |
+| `docs/05-plan/DECISIONS-NEEDED.md` | Owner decisions (answered and open) |
 | `docs/06-operations/` | Deployment and runbooks (filled in during Milestone 7–8) |
 | `PROGRESS_LOG.md` | Timestamped record of every completed change (UTC) |
 | `.env.example` | Every secret and setting the app needs, with empty placeholders |
