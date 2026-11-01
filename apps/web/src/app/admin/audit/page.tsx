@@ -23,6 +23,9 @@ export default async function AdminAuditPage({ searchParams }: { searchParams: P
           <datalist id="audit-presets">{PRESETS.filter(Boolean).map((p) => <option key={p} value={p} />)}</datalist>
         </label>
         <button className="h-10 rounded-lg border border-[var(--color-line)] bg-[var(--color-surface)] px-4 text-sm font-medium">Filter</button>
+        <a href={`/api/admin/audit/export?days=30${action ? `&action=${encodeURIComponent(action)}` : ""}`} className="inline-flex h-10 items-center rounded-lg border border-[var(--color-line)] bg-[var(--color-surface)] px-4 text-sm font-medium">
+          Download CSV (30 days)
+        </a>
       </form>
       <Table head={["When", "Who", "Action", "Target", "Change"]} empty={!rows.length}>
         {rows.map((r) => (

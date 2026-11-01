@@ -111,15 +111,15 @@ Each milestone ends with a **gate**: its checks must pass before the next milest
 | MA-T01 | Platform admin roles, mandatory 2FA, step-up checks, idle timeout | M | done (404 for non-staff; 2FA required; step-up 5 min bound to session, 5 wrong codes per 15 min; 30 min idle sign-out; optional IP allowlist) | Non-admin gets 404 on `/admin`; dangerous actions need fresh 2FA |
 | MA-T02 | Settings store: versioned, cached, rollback; read by pipeline at run start | M | done (append-only versions, rollback = new version, strict schema; read at run start) | Changing shortlist size takes effect on next run without redeploy |
 | MA-T03 | Overview dashboard (usage, spend, revenue, errors) | M | in progress (usage, spend, runs, stuck count, 14-day chart; no revenue (no billing yet), no error rate) | Numbers match ledger and Stripe |
-| MA-T04 | Users and workspaces: suspend, caps, credit grants/refunds, ownership transfer | M | in progress (users: search, suspend, sign out everywhere; workspaces: cap, pause; no credit grants/refunds or ownership transfer) | Each action audited with before/after |
+| MA-T04 | Users and workspaces: suspend, caps, credit grants/refunds, ownership transfer | M | in progress (users: search, suspend, sign out everywhere; workspaces: cap, pause, grant/take back credits for the month; no ownership transfer) | Each action audited with before/after |
 | MA-T05 | View-as user (read-only, logged, visible to user) | M | todo | Session appears in user's audit log |
-| MA-T06 | Runs and deep dives: cancel, retry stage, re-run, refund | M | in progress (runs and deep dives listed; watchdog ends stuck work; no admin cancel/retry/refund buttons) | Retried stage resumes correctly |
+| MA-T06 | Runs and deep dives: cancel, retry stage, re-run, refund | M | in progress (runs and deep dives listed; Stop; refund once per item; watchdog ends stuck work; no retry-a-stage) | Retried stage resumes correctly |
 | MA-T07 | Research settings, models and prompt versions with test-on-sample and rollback | L | in progress (research settings editor; models and prompt versions not built) | Prompt rollback restores previous output on sample |
 | MA-T08 | Templates, blocklists, feature flags, announcements, email templates | M | todo | Each editable and audited |
 | MA-T09 | Plans/pricing synced to Stripe; billing actions | M | todo | Plan edit reflected in Stripe test mode |
 | MA-T10 | Spend controls: global limits, kill switch, per-workspace pause | S | done (kill switch and per-workspace pause; running lists stop at their next stage) | Kill switch stops new steps within 60 s |
 | MA-T11 | Integrations health + "test connection"; secrets status (set / working) only | S | done (set/not set per integration; free connection tests for database, Tavily, LLM) | Panel never displays a secret value |
-| MA-T12 | Privacy requests, audit log search/export, system health | M | in progress (audit log view, filter, paging; no export, privacy requests or system health) | Export and deletion complete end to end |
+| MA-T12 | Privacy requests, audit log search/export, system health | M | in progress (audit log view, filter, paging, CSV export (itself audited); no privacy requests or system health page) | Export and deletion complete end to end |
 | MA-T13 | Admin staff roles (owner, admin, support, finance, viewer) | S | done (owner/admin/support/finance/viewer matrix with tests; owners only via PLATFORM_OWNER_EMAILS) | Permission matrix test passes |
 
 **Gate:** admin permission tests pass; every admin action appears in the audit log.

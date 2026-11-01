@@ -258,7 +258,7 @@ const ctx2 = await browser.newContext({ ignoreHTTPSErrors: true });
 const p2 = await ctx2.newPage();
 watch(p2, "signup");
 await trackCsp(p2);
-var email = `browser-${Date.now()}@example.com`; // eslint-disable-line no-var -- read by finish(), which can run before this line
+var email = `browser-${Date.now()}@example.com`; // var: finish() can run before this line and reads it
 await step("sign up and sign in", p2, async () => {
 await visit(p2, "/sign-up", "signup-form", { shot: false });
 await p2.getByLabel("Your name").fill("Browser Test");

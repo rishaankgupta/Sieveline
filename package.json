@@ -9,7 +9,7 @@
   "scripts": {
     "build": "pnpm -r --filter ./packages/** build && pnpm --filter web build",
     "typecheck": "pnpm -r typecheck",
-    "lint": "eslint .",
+    "lint": "eslint . --max-warnings 0",
     "test": "pnpm -r test",
     "check": "pnpm lint && pnpm typecheck && pnpm test",
     "db:generate": "pnpm --filter @sieveline/db generate",

@@ -4,7 +4,7 @@ import { formatDate } from "@/lib/labels";
 import { adminDb } from "@/server/admin";
 import { ActionButton } from "../admin-client";
 import { n, one, PageTitle, pageStaff, SearchForm, Table, Td } from "../ui";
-import { CapEditor } from "./cap-editor";
+import { CapEditor, GrantButton } from "./cap-editor";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +25,11 @@ export default async function AdminWorkspaces({ searchParams }: { searchParams: 
             <Td>{w.members}</Td>
             <Td>{w.runs}</Td>
             <Td className="whitespace-nowrap">
-              {n(w.creditsUsedThisMonth)} / {canCap ? <CapEditor id={w.id} cap={w.monthlyCreditCap} /> : n(w.monthlyCreditCap)}
+              <div className="flex flex-col items-start gap-1">
+                <span>{n(w.creditsUsedThisMonth)} / {canCap ? <CapEditor id={w.id} cap={w.monthlyCreditCap} /> : n(w.monthlyCreditCap)}</span>
+                {Number(w.bonusCredits) > 0 && <span className="text-xs text-[var(--color-muted)]">+ {n(w.bonusCredits)} extra this month</span>}
+                {canCap && <GrantButton id={w.id} name={w.name} />}
+              </div>
             </Td>
             <Td>{n(w.creditsReserved)}</Td>
             <Td>

@@ -102,6 +102,8 @@ export const workspaces = pgTable("workspaces", {
   monthlyCreditCap: integer("monthly_credit_cap").notNull().default(1000),
   creditsUsedThisMonth: numeric("credits_used_this_month", { precision: 12, scale: 2 }).notNull().default("0"),
   creditsReserved: numeric("credits_reserved", { precision: 12, scale: 2 }).notNull().default("0"),
+  /** Extra credits for the current month (admin grants and refunds). Reset with the month's usage. */
+  bonusCredits: numeric("bonus_credits", { precision: 12, scale: 2 }).notNull().default("0"),
   usagePeriodStart: timestamp("usage_period_start", { withTimezone: true }).notNull().defaultNow(),
   suspendedAt: timestamp("suspended_at", { withTimezone: true }),
   researchPausedAt: timestamp("research_paused_at", { withTimezone: true }),
@@ -160,6 +162,8 @@ export const runs = pgTable("runs", {
   startedAt: timestamp("started_at", { withTimezone: true }),
   finishedAt: timestamp("finished_at", { withTimezone: true }),
   lastHeartbeatAt: timestamp("last_heartbeat_at", { withTimezone: true }),
+  /** Set when an admin gave this run's credits back; a run is refunded at most once. */
+  refundedAt: timestamp("refunded_at", { withTimezone: true }),
   createdAt: createdAt(),
 }, (t) => [index("runs_ws_created_idx").on(t.workspaceId, t.createdAt)]);
 
@@ -264,6 +268,7 @@ export const deepDives = pgTable("deep_dives", {
   runId: uuid("run_id").references(() => runs.id, { onDelete: "set null" }),
   workflowRunId: text("workflow_run_id"),
   error: text("error"),
+  refundedAt: timestamp("refunded_at", { withTimezone: true }),
   requestedBy: text("requested_by").references(() => users.id, { onDelete: "set null" }),
   createdAt: createdAt(),
   finishedAt: timestamp("finished_at", { withTimezone: true }),
@@ -276,7 +281,9 @@ export const deepDives = pgTable("deep_dives", {
 // ---------------------------------------------------------------- metering and audit
 export const usageEvents = pgTable("usage_events", {
   id: bigserial("id", { mode: "number" }).primaryKey(),
-  workspaceId: workspaceId(),
+  // Spend history outlives the workspace (demo accounts are deleted daily): set null, not cascade.
+  // Rows with no workspace are invisible to the app role and still counted in platform spend.
+  workspaceId: uuid("workspace_id").references(() => workspaces.id, { onDelete: "set null" }),
   runId: uuid("run_id").references(() => runs.id, { onDelete: "set null" }),
   deepDiveId: uuid("deep_dive_id").references(() => deepDives.id, { onDelete: "set null" }),
   provider: provider("provider").notNull(),

@@ -1,6 +1,7 @@
 import { and, desc, eq, gt, inArray, sql } from "drizzle-orm";
 import * as s from "./schema.ts";
 import { withTenant, type TenantContext } from "./tenant.ts";
+import { monthStart } from "./research.ts";
 import type { AnyDb } from "./workspaces.ts";
 
 type Ctx = TenantContext & { workspaceId: string };
@@ -9,14 +10,17 @@ type Ctx = TenantContext & { workspaceId: string };
 export async function getWorkspaceUsage(db: AnyDb, ctx: Ctx) {
   const [w] = await withTenant(db, ctx, (tx) =>
     tx
-      .select({ cap: s.workspaces.monthlyCreditCap, used: s.workspaces.creditsUsedThisMonth, reserved: s.workspaces.creditsReserved, periodStart: s.workspaces.usagePeriodStart })
+      .select({ cap: s.workspaces.monthlyCreditCap, used: s.workspaces.creditsUsedThisMonth, reserved: s.workspaces.creditsReserved, bonus: s.workspaces.bonusCredits, periodStart: s.workspaces.usagePeriodStart })
       .from(s.workspaces)
       .where(eq(s.workspaces.id, ctx.workspaceId)),
   );
-  if (!w) return { cap: 0, used: 0, reserved: 0, available: 0 };
-  const used = Number(w.used);
+  if (!w) return { cap: 0, used: 0, reserved: 0, bonus: 0, available: 0 };
+  // A new month resets usage lazily (at the next reservation); show the reset already.
+  const stale = new Date(w.periodStart) < monthStart();
+  const used = stale ? 0 : Number(w.used);
+  const bonus = stale ? 0 : Number(w.bonus);
   const reserved = Number(w.reserved);
-  return { cap: w.cap, used, reserved, available: Math.max(0, w.cap - used - reserved) };
+  return { cap: w.cap, used, reserved, bonus, available: Math.max(0, w.cap + bonus - used - reserved) };
 }
 
 /** Recent runs with counts, newest first. */

@@ -13,6 +13,8 @@ const STUCK_MS = 30 * 60_000;
 export default async function AdminRuns({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
   const staff = await pageStaff("runs.view");
   const canCancel = adminCan(staff.role, "runs.cancel");
+  const canRefund = adminCan(staff.role, "workspaces.edit_limits");
+  const refundable = (x: { status: string; creditsUsed: string; refundedAt: Date | null }) => !x.refundedAt && Number(x.creditsUsed) > 0 && x.status !== "running" && x.status !== "queued";
   const status = one((await searchParams).status);
   const db = adminDb();
   const [runs, dives] = await Promise.all([adminListRuns(db, { status, limit: 100 }), adminListDeepDives(db, 50)]);
@@ -46,6 +48,10 @@ export default async function AdminRuns({ searchParams }: { searchParams: Promis
                   {canCancel && (r.status === "running" || r.status === "queued") && (
                     <ActionButton label="Stop" method="POST" path={`/api/admin/runs/${r.id}/cancel`} body={{}} needsReason confirm="Stop this list? Used credits stay charged, the rest is released." />
                   )}
+                  {r.refundedAt && <span className="block font-medium">Refunded</span>}
+                  {canRefund && refundable(r) && (
+                    <ActionButton label="Refund credits" method="POST" path="/api/admin/refunds" body={{ kind: "run", id: r.id }} needsReason confirm={`Give back ${n(r.creditsUsed)} credits to ${r.workspaceName} for this month?`} />
+                  )}
                 </Td>
               </tr>
             );
@@ -63,7 +69,13 @@ export default async function AdminRuns({ searchParams }: { searchParams: Promis
               <Td>{d.model}</Td>
               <Td className="tabular-nums">{n(d.creditsUsed)} / {n(d.creditsReserved)}</Td>
               <Td className="whitespace-nowrap">{formatDate(d.createdAt)}</Td>
-              <Td className="max-w-xs text-xs">{d.error ?? ""}</Td>
+              <Td className="max-w-xs text-xs">
+                {d.error ?? ""}
+                {d.refundedAt && <span className="block font-medium">Refunded</span>}
+                {canRefund && refundable(d) && (
+                  <ActionButton label="Refund credits" method="POST" path="/api/admin/refunds" body={{ kind: "deep_dive", id: d.id }} needsReason confirm={`Give back ${n(d.creditsUsed)} credits to ${d.workspaceName} for this month?`} />
+                )}
+              </Td>
             </tr>
           ))}
         </Table>

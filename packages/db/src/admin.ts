@@ -1,4 +1,5 @@
 import { and, desc, eq, gte, ilike, inArray, lt, or, sql } from "drizzle-orm";
+import { monthStart } from "./research.ts";
 import * as s from "./schema.ts";
 import type { AnyDb } from "./workspaces.ts";
 
@@ -151,7 +152,7 @@ export async function adminListWorkspaces(db: AnyDb, opts: { q?: string; limit?:
   return db
     .select({
       id: s.workspaces.id, name: s.workspaces.name, plan: s.workspaces.plan, monthlyCreditCap: s.workspaces.monthlyCreditCap,
-      creditsUsedThisMonth: s.workspaces.creditsUsedThisMonth, creditsReserved: s.workspaces.creditsReserved,
+      creditsUsedThisMonth: s.workspaces.creditsUsedThisMonth, creditsReserved: s.workspaces.creditsReserved, bonusCredits: s.workspaces.bonusCredits,
       researchPausedAt: s.workspaces.researchPausedAt, suspendedAt: s.workspaces.suspendedAt, createdAt: s.workspaces.createdAt,
       members: sql<number>`(select count(*)::int from memberships m where m.workspace_id = "workspaces"."id")`,
       runs: sql<number>`(select count(*)::int from runs r where r.workspace_id = "workspaces"."id")`,
@@ -194,7 +195,7 @@ export async function adminListRuns(db: AnyDb, opts: { status?: string; limit?: 
     .select({
       id: s.runs.id, workspaceId: s.runs.workspaceId, workspaceName: s.workspaces.name, status: s.runs.status,
       creditsReserved: s.runs.creditsReserved, creditsUsed: s.runs.creditsUsed, llmCostUsd: s.runs.llmCostUsd, error: s.runs.error,
-      createdAt: s.runs.createdAt, finishedAt: s.runs.finishedAt, lastHeartbeatAt: s.runs.lastHeartbeatAt,
+      createdAt: s.runs.createdAt, finishedAt: s.runs.finishedAt, lastHeartbeatAt: s.runs.lastHeartbeatAt, refundedAt: s.runs.refundedAt,
       thesisName: sql<string>`${s.runs.thesisSnapshot}->>'name'`,
     })
     .from(s.runs)
@@ -209,7 +210,7 @@ export async function adminListDeepDives(db: AnyDb, limit = 50) {
     .select({
       id: s.deepDives.id, workspaceName: s.workspaces.name, domain: s.companies.domain, status: s.deepDives.status,
       model: s.deepDives.model, creditsUsed: s.deepDives.creditsUsed, creditsReserved: s.deepDives.creditsReserved,
-      error: s.deepDives.error, createdAt: s.deepDives.createdAt, finishedAt: s.deepDives.finishedAt,
+      error: s.deepDives.error, createdAt: s.deepDives.createdAt, finishedAt: s.deepDives.finishedAt, refundedAt: s.deepDives.refundedAt,
     })
     .from(s.deepDives)
     .innerJoin(s.workspaces, eq(s.workspaces.id, s.deepDives.workspaceId))
@@ -283,4 +284,78 @@ export async function adminSetPlatformRole(db: AnyDb, actor: AdminActor, userId:
     await audit(tx as unknown as AnyDb, actor, { action: "admin.staff.role_changed", targetType: "user", targetId: userId, before, after: { platformRole: role } });
     return true;
   });
+}
+
+// ---------------------------------------------------------------- credit grants and refunds
+/**
+ * Adds extra credits to a workspace for the current month (they reset with the month).
+ * Negative amounts take back an earlier grant, but never below zero bonus.
+ */
+export async function adminGrantCredits(db: AnyDb, actor: AdminActor, workspaceId: string, amount: number, reason: string) {
+  if (!Number.isInteger(amount) || amount === 0 || Math.abs(amount) > 100_000) throw new AdminRuleError("Amount must be a whole number between -100000 and 100000, not 0");
+  return db.transaction(async (tx) => {
+    const [before] = await tx.select({ bonus: s.workspaces.bonusCredits, start: s.workspaces.usagePeriodStart }).from(s.workspaces).where(eq(s.workspaces.id, workspaceId)).for("update");
+    if (!before) return null;
+    // Roll the month first so a grant made on the 1st isn't wiped by the lazy monthly reset.
+    const stale = before.start < monthStart();
+    const current = stale ? 0 : num(before.bonus);
+    const next = Math.max(0, current + amount);
+    await tx.update(s.workspaces)
+      .set({ bonusCredits: String(next), ...(stale ? { creditsUsedThisMonth: "0", usagePeriodStart: monthStart() } : {}), updatedAt: new Date() })
+      .where(eq(s.workspaces.id, workspaceId));
+    await audit(tx as unknown as AnyDb, actor, {
+      action: "admin.workspace.credits_granted", workspaceId, targetType: "workspace", targetId: workspaceId,
+      before: { bonusCredits: current }, after: { bonusCredits: next, amount, reason },
+    });
+    return next;
+  });
+}
+
+/**
+ * Gives back the credits a finished run or deep dive used, as a bonus for the current month.
+ * At most once per item (refunded_at), and only for finished work (running work holds credits).
+ */
+export async function adminRefund(db: AnyDb, actor: AdminActor, kind: "run" | "deep_dive", id: string, reason: string) {
+  return db.transaction(async (tx) => {
+    const table = kind === "run" ? s.runs : s.deepDives;
+    const [item] = await tx
+      .select({ workspaceId: table.workspaceId, status: table.status, creditsUsed: table.creditsUsed, refundedAt: table.refundedAt })
+      .from(table).where(eq(table.id, id)).for("update");
+    if (!item) return null;
+    if (item.refundedAt) throw new AdminRuleError("This was already refunded");
+    if (item.status === "queued" || item.status === "running") throw new AdminRuleError("Stop it first: running work still holds its credits");
+    const credits = num(item.creditsUsed);
+    if (credits <= 0) throw new AdminRuleError("Nothing to refund: it used 0 credits");
+    await tx.update(table).set({ refundedAt: new Date() }).where(eq(table.id, id));
+    const [ws] = await tx.select({ bonus: s.workspaces.bonusCredits, start: s.workspaces.usagePeriodStart }).from(s.workspaces).where(eq(s.workspaces.id, item.workspaceId)).for("update");
+    const stale = ws!.start < monthStart();
+    const bonus = (stale ? 0 : num(ws!.bonus)) + credits;
+    await tx.update(s.workspaces)
+      .set({ bonusCredits: String(bonus), ...(stale ? { creditsUsedThisMonth: "0", usagePeriodStart: monthStart() } : {}), updatedAt: new Date() })
+      .where(eq(s.workspaces.id, item.workspaceId));
+    await audit(tx as unknown as AnyDb, actor, {
+      action: kind === "run" ? "admin.run.refunded" : "admin.deep_dive.refunded", workspaceId: item.workspaceId, targetType: kind, targetId: id,
+      before: { refundedAt: null }, after: { credits, reason },
+    });
+    return credits;
+  });
+}
+
+/** Audit rows for CSV export (newest first), same filters as the viewer. */
+export async function adminAuditForExport(db: AnyDb, opts: { action?: string; sinceDays: number; limit: number }) {
+  const conds = [
+    gte(s.auditLog.createdAt, new Date(Date.now() - opts.sinceDays * 86_400_000)),
+    opts.action ? ilike(s.auditLog.action, `${opts.action.replace(/[%_\\]/g, "\\$&")}%`) : undefined,
+  ].filter(Boolean);
+  return db
+    .select({
+      id: s.auditLog.id, createdAt: s.auditLog.createdAt, action: s.auditLog.action, actorUserId: s.auditLog.actorUserId,
+      actorEmail: s.users.email, actorIsAdmin: s.auditLog.actorIsAdmin, workspaceId: s.auditLog.workspaceId,
+      targetType: s.auditLog.targetType, targetId: s.auditLog.targetId, before: s.auditLog.before, after: s.auditLog.after,
+    })
+    .from(s.auditLog)
+    .leftJoin(s.users, eq(s.users.id, s.auditLog.actorUserId))
+    .where(and(...conds))
+    .orderBy(desc(s.auditLog.id))
+    .limit(Math.min(opts.limit, 50_000));
 }

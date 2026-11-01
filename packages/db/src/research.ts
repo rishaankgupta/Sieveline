@@ -36,7 +36,7 @@ function rowsOf<T>(result: unknown): T[] {
 }
 
 /** Resets the monthly counter when a new calendar month (UTC) has started. */
-function monthStart(d = new Date()): Date {
+export function monthStart(d = new Date()): Date {
   return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1));
 }
 
@@ -71,17 +71,19 @@ export async function isResearchPausedFor(db: AnyDb, ctx: TenantContext & { work
  */
 export async function reserveWorkspaceCredits(tx: AnyDb, ctx: { workspaceId: string }, amount: number): Promise<void> {
   const locked = await tx.execute(sql`select * from workspaces where id = ${ctx.workspaceId} for update`);
-  const ws = rowsOf<{ monthly_credit_cap: number; credits_used_this_month: string; credits_reserved: string; usage_period_start: string | Date; research_paused_at: unknown; suspended_at: unknown }>(locked)[0];
+  const ws = rowsOf<{ monthly_credit_cap: number; credits_used_this_month: string; credits_reserved: string; bonus_credits: string; usage_period_start: string | Date; research_paused_at: unknown; suspended_at: unknown }>(locked)[0];
   if (!ws) throw new Error("workspace not found");
   if (ws.research_paused_at || ws.suspended_at) throw new ResearchPaused("workspace");
 
   let used = num(ws.credits_used_this_month);
+  let bonus = num(ws.bonus_credits);
   const start = monthStart();
   if (new Date(ws.usage_period_start) < start) {
     used = 0;
-    await tx.update(s.workspaces).set({ creditsUsedThisMonth: "0", usagePeriodStart: start }).where(eq(s.workspaces.id, ctx.workspaceId));
+    bonus = 0;
+    await tx.update(s.workspaces).set({ creditsUsedThisMonth: "0", bonusCredits: "0", usagePeriodStart: start }).where(eq(s.workspaces.id, ctx.workspaceId));
   }
-  const available = ws.monthly_credit_cap - used - num(ws.credits_reserved);
+  const available = ws.monthly_credit_cap + bonus - used - num(ws.credits_reserved);
   if (amount > available) throw new InsufficientCredits(Math.max(0, available), amount);
   await tx
     .update(s.workspaces)

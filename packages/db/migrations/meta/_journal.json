@@ -64,6 +64,20 @@
       "when": 1793205779744,
       "tag": "0008_admin_idle",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793509364990,
+      "tag": "0009_credit_grants_refunds",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793509700048,
+      "tag": "0010_usage_survives_workspace",
+      "breakpoints": true
     }
   ]
 }

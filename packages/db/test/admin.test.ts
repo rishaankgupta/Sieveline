@@ -139,3 +139,46 @@ describe("admin data access (as sieveline_admin)", () => {
     });
   });
 });
+
+describe("credit grants and refunds", () => {
+  it("grants raise this month's allowance; refunds give a finished run's credits back once", async () => {
+    const { adminGrantCredits, adminRefund, getWorkspaceUsage, settleRun } = await import("../src/index.ts");
+    const c = { userId: "u1", workspaceId: ws };
+    await as("sieveline_admin", () => adminUpdateWorkspace(db, actor, ws, { monthlyCreditCap: 100, researchPaused: false }, "reset for test"));
+    await as("sieveline_admin", () => adminPutSetting(db, actor, "research_paused", false, "an earlier test turned it on"));
+    // Release whatever earlier tests left held, then use 30 credits on a finished run.
+    await db.update(s.runs).set({ status: "succeeded" }).where(eq(s.runs.workspaceId, ws));
+    const held = await db.select({ id: s.runs.id }).from(s.runs).where(eq(s.runs.workspaceId, ws));
+    for (const r of held) await as("sieveline_app", () => settleRun(db, c, r.id));
+    const { runId } = await as("sieveline_app", () => createRunWithReservation(db, c, { thesisId: null, thesis: {}, settings: {}, reserveCredits: 40, dailyCeiling: 1e9 }));
+    await as("sieveline_app", () => recordUsage(db, c, { runId, provider: "tavily", endpoint: "search", credits: 30, costUsd: 0, cached: false }));
+
+    // Running work can't be refunded.
+    await expect(as("sieveline_admin", () => adminRefund(db, actor, "run", runId, "too early"))).rejects.toBeInstanceOf(AdminRuleError);
+    await as("sieveline_app", () => settleRun(db, c, runId));
+    await db.update(s.runs).set({ status: "succeeded" }).where(eq(s.runs.id, runId));
+    const before = await as("sieveline_app", () => getWorkspaceUsage(db, c));
+
+    expect(await as("sieveline_admin", () => adminRefund(db, actor, "run", runId, "results were empty"))).toBe(30);
+    await expect(as("sieveline_admin", () => adminRefund(db, actor, "run", runId, "again"))).rejects.toThrow(/already refunded/);
+    const afterRefund = await as("sieveline_app", () => getWorkspaceUsage(db, c));
+    expect(afterRefund.available).toBe(before.available + 30);
+
+    expect(await as("sieveline_admin", () => adminGrantCredits(db, actor, ws, 50, "pilot customer"))).toBe(80);
+    expect(await as("sieveline_admin", () => adminGrantCredits(db, actor, ws, -500, "take back"))).toBe(0); // never below 0
+    await expect(as("sieveline_admin", () => adminGrantCredits(db, actor, ws, 0, "nothing"))).rejects.toBeInstanceOf(AdminRuleError);
+    await expect(as("sieveline_admin", () => adminGrantCredits(db, actor, ws, 1.5, "fraction"))).rejects.toBeInstanceOf(AdminRuleError);
+    expect(await as("sieveline_admin", () => adminGrantCredits(db, actor, ws, 25, "final"))).toBe(25);
+
+    // The grant really is spendable: available = cap + bonus - used, to the credit.
+    const usage = await as("sieveline_app", () => getWorkspaceUsage(db, c));
+    expect(usage.bonus).toBe(25);
+    expect(usage.available).toBe(100 + 25 - usage.used);
+    await expect(as("sieveline_app", () => createRunWithReservation(db, c, { thesisId: null, thesis: {}, settings: {}, reserveCredits: usage.available + 1, dailyCeiling: 1e9 }))).rejects.toBeInstanceOf(InsufficientCredits);
+    await expect(as("sieveline_app", () => createRunWithReservation(db, c, { thesisId: null, thesis: {}, settings: {}, reserveCredits: usage.available, dailyCeiling: 1e9 }))).resolves.toBeTruthy();
+
+    const log = await as("sieveline_admin", () => adminListAudit(db, { action: "admin.workspace.credits_granted" }));
+    expect(log[0]).toMatchObject({ before: { bonusCredits: 0 }, after: { bonusCredits: 25, amount: 25, reason: "final" } });
+    expect((await as("sieveline_admin", () => adminListAudit(db, { action: "admin.run.refunded" })))[0]).toMatchObject({ targetId: runId, after: { credits: 30 } });
+  });
+});

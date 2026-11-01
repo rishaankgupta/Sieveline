@@ -38,3 +38,34 @@ export function CapEditor({ id, cap }: { id: string; cap: number }) {
     </span>
   );
 }
+
+/** Grants (or, with a minus sign, takes back) extra credits for this month. */
+export function GrantButton({ id, name }: { id: string; name: string }) {
+  const run = useAdminAction();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  async function go() {
+    const raw = window.prompt(`Extra credits for "${name}" this month (use a minus sign to take back)`, "100");
+    if (raw === null) return;
+    const amount = Number(raw.trim());
+    if (!Number.isInteger(amount) || amount === 0) return setError("Enter a whole number other than 0");
+    const reason = window.prompt("Reason (saved in the audit log)");
+    if (!reason || reason.trim().length < 3) return;
+    setBusy(true);
+    setError(null);
+    try {
+      await run(`/api/admin/workspaces/${id}/credits`, { method: "POST", body: { amount, reason: reason.trim() } });
+      window.location.reload();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Failed");
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <span className="inline-flex flex-col gap-1">
+      <button type="button" disabled={busy} onClick={() => void go()} className="h-8 rounded border border-[var(--color-line)] px-2 text-xs font-medium hover:bg-[var(--color-bg)]">{busy ? "Saving…" : "Grant credits"}</button>
+      {error && <span role="alert" className="text-xs text-red-700 dark:text-red-400">{error}</span>}
+    </span>
+  );
+}
