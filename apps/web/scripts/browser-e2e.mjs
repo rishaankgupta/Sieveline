@@ -21,6 +21,7 @@ const EXPECTED_HTTP = [
   // The admin pass sends one change before entering a code (step_up_required) and one wrong code.
   [/\/api\/admin\/workspaces\/[0-9a-f-]+$/, 401],
   [/\/api\/admin\/step-up$/, 401],
+  [/\/api\/auth\/two-factor\/verify-(totp|backup-code)$/, 401],
 ];
 /** RFC 6238 TOTP (SHA-1, 30 s, 6 digits) from a base32 key, like an authenticator app. */
 function totp(base32, at = Date.now()) {
@@ -307,6 +308,8 @@ check("right password signs in", p2.url().includes("/app"), p2.url());
 // ---------------------------------------------------------------- admin panel (only with ADMIN_DB_URL, an owner connection)
 // Changes only this test user's own workspace; never the platform-wide kill switch (the database
 // is shared with the live site).
+let totpKey = "";
+let backupCodes = [];
 if (process.env.ADMIN_DB_URL) await step("admin panel", p2, async () => {
   const { createDb, schema } = await import("@sieveline/db");
   const { eq } = await import("drizzle-orm");
@@ -325,7 +328,9 @@ if (process.env.ADMIN_DB_URL) await step("admin panel", p2, async () => {
   await p2.getByRole("button", { name: "Turn on" }).click();
   await p2.getByText("Two-factor is on").first().waitFor({ timeout: 15_000 });
   check("2FA turns on with a code from the key", true);
-  check("backup codes are shown once", (await p2.locator("main ul li.select-all").count()) >= 8);
+  backupCodes = (await p2.locator("main ul li.select-all").allTextContents()).map((c) => c.trim());
+  check("backup codes are shown once", backupCodes.length >= 8, backupCodes.length);
+  totpKey = key;
 
   for (const [path, label, heading] of [["/admin", "admin-overview", "Overview"], ["/admin/users", "admin-users", "Users"], ["/admin/workspaces", "admin-workspaces", "Workspaces"], ["/admin/runs", "admin-runs", "Lists (runs)"], ["/admin/settings", "admin-settings", "Settings"], ["/admin/integrations", "admin-integrations", "Integrations"], ["/admin/audit", "admin-audit", "Audit log"], ["/admin/staff", "admin-staff", "Staff"]]) {
     const res = await visit(p2, path, label);
@@ -360,6 +365,49 @@ if (process.env.ADMIN_DB_URL) await step("admin panel", p2, async () => {
   const grants = await db.select().from(schema.auditLog).where(eq(schema.auditLog.action, "admin.workspace.credits_granted"));
   const log = grants.at(-1);
   check("the grant is in the audit log with the reason", log?.after?.reason === "browser e2e test", JSON.stringify(log?.after));
+});
+
+// Signing in with two-factor on (the step the earlier suite never covered: a bug sent these users
+// back to the sign-in page). Code from the app, a wrong code, `next` kept, and a one-time backup code.
+if (totpKey) await step("sign in with two-factor", p2, async () => {
+  const signIn = async (next) => {
+    await p2.context().clearCookies();
+    await p2.goto(`${BASE}/sign-in${next ? `?next=${encodeURIComponent(next)}` : ""}`, { waitUntil: "networkidle" });
+    await p2.getByLabel("Email").fill(email);
+    await p2.getByLabel("Password").fill("correct horse battery staple 7");
+    await p2.getByRole("button", { name: "Sign in" }).click();
+    await p2.waitForURL(/\/sign-in\/two-factor/, { timeout: 20_000 });
+  };
+  await signIn("/admin/settings");
+  check("after the password, a 2FA account goes to the code page (keeping next)", p2.url().includes("/sign-in/two-factor") && p2.url().includes("next=%2Fadmin%2Fsettings"), p2.url());
+  await p2.screenshot({ path: `${SHOTS}/two-factor-page.png`, fullPage: true });
+  check("code page has no serious accessibility issues", (await axe(p2, "two-factor-page")).length === 0);
+  await p2.getByLabel("Code").fill("123456");
+  await p2.getByRole("button", { name: "Verify" }).click();
+  const bad = p2.locator("main [role=alert]").first();
+  await bad.waitFor({ timeout: 10_000 });
+  check("a wrong code shows an error and stays on the page", p2.url().includes("/sign-in/two-factor") && ((await bad.textContent()) ?? "").includes("code"), await bad.textContent());
+  // A fresh time window, so the code differs from the one used for step-up a moment ago.
+  await p2.waitForTimeout(30_500 - (Date.now() % 30_000));
+  await p2.getByLabel("Code").fill(totp(totpKey));
+  await p2.getByRole("button", { name: "Verify" }).click();
+  await p2.waitForURL(/\/admin\/settings/, { timeout: 20_000 }).catch(() => {});
+  check("the right code signs in and opens the page you asked for", new URL(p2.url()).pathname === "/admin/settings", p2.url());
+
+  await signIn();
+  await p2.getByRole("button", { name: "Lost your phone? Use a backup code" }).click();
+  await p2.getByLabel("Backup code").fill(backupCodes[0]);
+  await p2.getByRole("button", { name: "Verify" }).click();
+  await p2.waitForURL((u) => u.pathname.startsWith("/app"), { timeout: 20_000 }).catch(() => {});
+  check("a backup code signs in", new URL(p2.url()).pathname.startsWith("/app"), p2.url());
+
+  await signIn();
+  await p2.getByRole("button", { name: "Lost your phone? Use a backup code" }).click();
+  await p2.getByLabel("Backup code").fill(backupCodes[0]);
+  await p2.getByRole("button", { name: "Verify" }).click();
+  const used = p2.locator("main [role=alert]").first();
+  await used.waitFor({ timeout: 10_000 });
+  check("a used backup code is refused", p2.url().includes("/sign-in/two-factor"), p2.url());
 });
 await ctx2.close();
 await browser.close();

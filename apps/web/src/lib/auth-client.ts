@@ -5,11 +5,9 @@ import { createAuthClient } from "better-auth/react";
 
 export const authClient = createAuthClient({
   plugins: [
-    twoFactorClient({
-      onTwoFactorRedirect() {
-        window.location.href = "/sign-in/two-factor";
-      },
-    }),
+    // The sign-in form sends people to the code page itself (keeping ?next=). Navigating here too
+    // raced with the form's own redirect and bounced 2FA users back to sign-in.
+    twoFactorClient({ onTwoFactorRedirect() {} }),
   ],
 });
 

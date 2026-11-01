@@ -22,7 +22,7 @@ export function SignInForm({ nonce, googleEnabled }: { nonce?: string; googleEna
     const form = new FormData(e.currentTarget);
     setError(null);
     setLoading(true);
-    const { error: err } = await authClient.signIn.email({
+    const { data, error: err } = await authClient.signIn.email({
       email: String(form.get("email")).trim(),
       password: String(form.get("password")),
       callbackURL: next,
@@ -31,6 +31,11 @@ export function SignInForm({ nonce, googleEnabled }: { nonce?: string; googleEna
     if (err) {
       setLoading(false);
       setError(authErrorMessage(err));
+      return;
+    }
+    // Two-factor accounts get no session yet: the password was right, now the code.
+    if (data && "twoFactorRedirect" in data && data.twoFactorRedirect) {
+      window.location.assign(`/sign-in/two-factor?next=${encodeURIComponent(next)}`);
       return;
     }
     window.location.assign(next);
