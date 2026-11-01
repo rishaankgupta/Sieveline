@@ -7,7 +7,7 @@ calls the language model, so they can be run as often as needed.
 
 | Suite | What it covers | How to run |
 |---|---|---|
-| Unit + integration (`pnpm check`) | Lint, types, 111 core, 35 db (real Postgres via PGlite, RLS on), 25 web unit, 4 web integration (workflow with fake Tavily/LLM servers) | `pnpm check` |
+| Unit + integration (`pnpm check`) | Lint, types, 115 core, 35 db (real Postgres via PGlite, RLS on), 25 web unit, 12 web integration (workflow with fake Tavily/LLM servers, including 8 failure-injection cases) | `pnpm check` |
 | Concurrency on Neon | Parallel credit reservations, double-start of deep dives, parallel settlement, rate limiter, RLS under load | `node packages/db/scripts/stress-race.ts` (needs `DATABASE_URL`, `DATABASE_URL_ADMIN`, `DATABASE_URL_OWNER`) |
 | HTTP stress + odd inputs | Load on every main page and API, cross-user isolation, bad input, CSRF, XSS, CSV injection, headers, rate limits | Start `next start`, then `BASE=… ORIGIN=… node apps/web/scripts/stress-http.mjs` |
 | Real browser (Chrome) | Public pages in light/dark and desktop/mobile with axe (WCAG 2.2 AA), the whole buyer journey by clicking, sign-up and sign-in forms, JS errors, CSP violations, unexpected HTTP errors | Start `next start` and `node apps/web/scripts/https-proxy.mjs`, then `BASE=https://localhost:3443 node apps/web/scripts/browser-e2e.mjs` |
@@ -17,7 +17,7 @@ self-signed certificate in memory. Chrome comes from `/usr/local/bin/chrome` (Ch
 
 ## Latest results (2026-11-01)
 
-**Real browser: 114/114 checks.** 28 public page loads (7 pages × light/dark × 1280 px / 390 px): every
+**Real browser: 122/122 checks** (latest; 114 before keyboard shortcuts and Excel were added). 28 public page loads (7 pages × light/dark × 1280 px / 390 px): every
 page loads, 0 serious or critical axe issues, no horizontal scrolling. Buyer journey: one-click demo
 opens the sample list, pin survives a reload, evidence dialog shows verified quotes and the deep-dive
 dossier with its warning, review and note save, Escape closes the dialog, the full table filters, the
@@ -64,6 +64,8 @@ account's data to the other.
 | 3 parallel settlements of one deep dive | applied once |
 | 60 parallel hits on a limit of 10 | 10 allowed |
 | 40 parallel reads from another workspace | 0 rows leaked |
+
+Live site (https://sieveline.vercel.app), public pages only (`PUBLIC_ONLY=1`): 87/87 in Chrome, 0 JS errors, 0 CSP violations.
 
 ## Bugs these suites found (all fixed)
 

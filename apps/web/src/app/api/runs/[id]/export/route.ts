@@ -1,4 +1,4 @@
-import { assertCan, toCsv } from "@sieveline/core";
+import { assertCan, toCsv, toXlsx } from "@sieveline/core";
 import { getRunResults, schema, withTenant } from "@sieveline/db";
 import { hitRateLimit } from "@sieveline/db";
 import { handle, HttpError, isUuid } from "@/server/api";
@@ -7,7 +7,10 @@ import { requireWorkspace } from "@/server/session";
 
 export const dynamic = "force-dynamic";
 
-/** CSV export with every fact's quote and source. Cells are formula-safe (see core/csv). */
+/**
+ * CSV (default) or Excel (?format=xlsx) export with every fact's quote and source. CSV cells are
+ * formula-escaped (core/csv); Excel text cells are inline strings, never evaluated (core/xlsx).
+ */
 export function GET(request: Request, { params }: { params: Promise<{ id: string }> }): Promise<Response> {
   return handle(async () => {
     const { id } = await params;
@@ -18,7 +21,9 @@ export function GET(request: Request, { params }: { params: Promise<{ id: string
     const { db } = app();
     const data = await getRunResults(db, ws, id);
     if (!data) throw new HttpError(404, "Not found");
-    const scope = new URL(request.url).searchParams.get("scope") === "all" ? "all" : "shortlist";
+    const q = new URL(request.url).searchParams;
+    const scope = q.get("scope") === "all" ? "all" : "shortlist";
+    const format = q.get("format") === "xlsx" ? "xlsx" : "csv";
     const thesis = data.run.thesis as { name: string; criteria: { id: string; label?: string; question: string }[] };
     const sl = new Map(data.shortlist.map((i) => [i.companyId, i]));
     const mine = new Map(data.reviews.filter((r) => r.userId === ws.userId).map((r) => [r.companyId, r]));
@@ -45,12 +50,14 @@ export function GET(request: Request, { params }: { params: Promise<{ id: string
       ];
     });
     await withTenant(db, ws, (tx) =>
-      tx.insert(schema.auditLog).values({ workspaceId: ws.workspaceId, actorUserId: ws.userId, action: "run.exported", targetType: "run", targetId: id, after: { scope, rows: rows.length } }),
+      tx.insert(schema.auditLog).values({ workspaceId: ws.workspaceId, actorUserId: ws.userId, action: "run.exported", targetType: "run", targetId: id, after: { scope, format, rows: rows.length } }),
     );
-    const file = `${thesis.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 50) || "sieveline"}-${scope}.csv`;
-    return new Response(toCsv(headers, body), {
+    const base = `${thesis.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 50) || "sieveline"}-${scope}`;
+    const file = `${base}.${format}`;
+    const content = format === "xlsx" ? toXlsx(headers, body, thesis.name) : toCsv(headers, body);
+    return new Response(content as BodyInit, {
       headers: {
-        "Content-Type": "text/csv; charset=utf-8",
+        "Content-Type": format === "xlsx" ? "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" : "text/csv; charset=utf-8",
         "Content-Disposition": `attachment; filename="${file}"`,
         "Cache-Control": "no-store",
         "X-Content-Type-Options": "nosniff",

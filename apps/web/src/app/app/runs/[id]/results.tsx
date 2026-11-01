@@ -30,10 +30,14 @@ function hostOf(url: string): string {
   }
 }
 
-export function CompanyCard({ company, item, results, onOpen, onPatch }: {
+const REVIEW_LABEL = { approved: "Worth contacting", needs_check: "Needs a check", rejected: "Not a fit" } as const;
+
+export function CompanyCard({ company, item, results, onOpen, onPatch, index, selected = false }: {
   company: Company;
   item: ShortlistItem | undefined;
   results: Results;
+  index?: number;
+  selected?: boolean;
   onOpen: (factId?: string) => void;
   onPatch: (body: Record<string, unknown>) => Promise<void>;
 }) {
@@ -45,9 +49,11 @@ export function CompanyCard({ company, item, results, onOpen, onPatch }: {
     .slice(0, 3);
   const warnings = facts.filter((f) => f.kind === "parent_flag" || (f.kind === "news_flag" && f.key !== "succession" && f.key !== "acquirer"));
   const site = safeHref(`https://${company.domain}`);
+  const review = results.reviews.find((r) => r.companyId === company.id);
 
   return (
-    <li className={`rounded-[var(--radius-card)] border bg-[var(--color-surface)] p-5 ${item?.pinned ? "border-[var(--color-accent)]" : "border-[var(--color-line)]"} ${item?.hidden ? "opacity-60" : ""}`}>
+    <li data-card={index} tabIndex={-1} aria-current={selected || undefined}
+      className={`rounded-[var(--radius-card)] border bg-[var(--color-surface)] p-5 outline-none ${item?.pinned ? "border-[var(--color-accent)]" : "border-[var(--color-line)]"} ${item?.hidden ? "opacity-60" : ""} ${selected ? "ring-2 ring-[var(--color-accent)] ring-offset-2 ring-offset-[var(--color-bg)]" : ""}`}>
       <div className="flex flex-wrap items-start gap-3">
         {item && <span className="grid size-8 shrink-0 place-items-center rounded-full bg-[var(--color-bg)] text-sm font-semibold" aria-label={`Rank ${item.position}`}>{item.position}</span>}
         <div className="min-w-0 flex-1">
@@ -55,6 +61,7 @@ export function CompanyCard({ company, item, results, onOpen, onPatch }: {
             {company.name ?? company.domain}
             <FitBadge status={company.status} />
             {item?.pinned && <span className="text-xs font-medium text-[var(--color-accent)]">Pinned</span>}
+            {review && <span className="rounded-full border border-[var(--color-line)] px-2 py-0.5 text-xs font-medium">{REVIEW_LABEL[review.decision]}</span>}
           </h2>
           {site && <a href={site} target="_blank" rel="noopener noreferrer nofollow" className="text-sm text-[var(--color-muted)] underline">{company.name ? company.domain : "Visit website"}</a>}
           {company.summary && <p className="mt-2">{company.summary}</p>}

@@ -28,3 +28,4 @@ export * from "./research/advisor.ts";
 export * from "./research/draft.ts";
 export * from "./research/deep-dive.ts";
 export * from "./admin-permissions.ts";
+export * from "./xlsx.ts";

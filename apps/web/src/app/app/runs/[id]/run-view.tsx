@@ -6,7 +6,8 @@ import { api, ApiError } from "@/lib/client-api";
 import { RUN_STATUS, STEP_LABEL } from "@/lib/labels";
 import { Advisor } from "./advisor";
 import { CompanyCard, EvidenceDialog, FullTable } from "./results";
-import type { Company, Results, RunStatus } from "./types";
+import { isTyping, ShortcutsHelp, useShortcutsEnabled } from "./shortcuts";
+import type { Company, Results, Review, RunStatus } from "./types";
 
 const POLL_MS = 4000;
 
@@ -18,6 +19,10 @@ export function RunView({ runId, name, advisorEnabled, canCancel }: { runId: str
   const [view, setView] = useState<"shortlist" | "all">("shortlist");
   const [showHidden, setShowHidden] = useState(false);
   const [advisorView, setAdvisorView] = useState<string[] | null>(null);
+  const [selected, setSelected] = useState(0);
+  const [helpOpen, setHelpOpen] = useState(false);
+  const [notice, setNotice] = useState("");
+  const [shortcutsOn, setShortcutsOn] = useShortcutsEnabled();
 
   const loadResults = useCallback(async () => {
     try {
@@ -71,6 +76,43 @@ export function RunView({ runId, name, advisorEnabled, canCancel }: { runId: str
       setError(e instanceof ApiError ? e.message : "Couldn't save that change.");
     }
   }
+
+  const REVIEW_KEYS: Record<string, [Review["decision"], string]> = { "1": ["approved", "Worth contacting"], "2": ["needs_check", "Needs a check"], "3": ["rejected", "Not a fit"] };
+  useEffect(() => {
+    if (!results || view !== "shortlist") return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "?" && !isTyping(e)) {
+        e.preventDefault();
+        setHelpOpen(true);
+        return;
+      }
+      if (!shortcutsOn || isTyping(e) || cards.length === 0) return;
+      const i = Math.min(selected, cards.length - 1);
+      const c = cards[i]!;
+      const item = slMap.get(c.id);
+      const name = c.name ?? c.domain;
+      const focusCard = (n: number) => {
+        setSelected(n);
+        document.querySelector<HTMLElement>(`[data-card="${n}"]`)?.focus();
+      };
+      if (e.key === "j") focusCard(Math.min(cards.length - 1, i + 1));
+      else if (e.key === "k") focusCard(Math.max(0, i - 1));
+      else if (e.key === "o") setOpen({ companyId: c.id });
+      else if (e.key === "p" && results.canEdit) {
+        void patchCompany(c.id, { pinned: !item?.pinned }).then(() => setNotice(`${name} ${item?.pinned ? "unpinned" : "pinned"}`));
+      } else if (e.key === "h" && results.canEdit && item) {
+        void patchCompany(c.id, { hidden: !item.hidden }).then(() => setNotice(`${name} ${item.hidden ? "shown" : "hidden"}`));
+      } else if (REVIEW_KEYS[e.key] && results.canEdit) {
+        const [decision, label] = REVIEW_KEYS[e.key]!;
+        // Keep the existing note: the review endpoint replaces both fields.
+        const note = results.reviews.find((r) => r.companyId === c.id)?.note ?? null;
+        void patchCompany(c.id, { review: { decision, note } }).then(() => setNotice(`${name}: ${label}`));
+      } else return;
+      e.preventDefault();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  });
 
   if (!status) return <p role="status" className="text-[var(--color-muted)]">{error ?? "Loading…"}</p>;
 
@@ -134,10 +176,18 @@ export function RunView({ runId, name, advisorEnabled, canCancel }: { runId: str
           <a href={`/api/runs/${runId}/export?scope=${view === "all" ? "all" : "shortlist"}`} className="inline-flex h-9 items-center rounded-lg border border-[var(--color-line)] bg-[var(--color-surface)] px-3 text-sm">
             Download CSV
           </a>
+          <a href={`/api/runs/${runId}/export?scope=${view === "all" ? "all" : "shortlist"}&format=xlsx`} className="inline-flex h-9 items-center rounded-lg border border-[var(--color-line)] bg-[var(--color-surface)] px-3 text-sm">
+            Download Excel
+          </a>
+          <button type="button" onClick={() => setHelpOpen(true)} aria-keyshortcuts="?" className="inline-flex h-9 items-center rounded-lg border border-[var(--color-line)] bg-[var(--color-surface)] px-3 text-sm">
+            Shortcuts
+          </button>
         </div>
       </div>
 
       {error && <Alert>{error}</Alert>}
+      <p role="status" aria-live="polite" className="sr-only">{notice}</p>
+      <ShortcutsHelp open={helpOpen} onClose={() => setHelpOpen(false)} enabled={shortcutsOn} setEnabled={setShortcutsOn} />
 
       <div className={`grid gap-6 ${advisorEnabled ? "lg:grid-cols-[minmax(0,1fr)_380px]" : ""}`}>
         <div className="min-w-0">
@@ -153,13 +203,23 @@ export function RunView({ runId, name, advisorEnabled, canCancel }: { runId: str
               )}
               {cards.length === 0 ? (
                 <div className="rounded-[var(--radius-card)] border border-dashed border-[var(--color-line)] p-10 text-center">
-                  <p className="font-medium">No companies on the shortlist</p>
-                  <p className="mt-1 text-[var(--color-muted)]">None of the companies checked passed your must-have rules. Try the full list, or loosen a rule and run again.</p>
+                  {results.companies.length === 0 ? (
+                    <>
+                      <p className="font-medium">No companies were found</p>
+                      <p className="mt-1 text-[var(--color-muted)]">The web search returned no company websites for these search phrases and places. Try broader phrases, more places, or add companies you already know.</p>
+                      <a href="/app/new" className="mt-4 inline-block rounded-lg bg-[var(--color-accent)] px-4 py-2 font-medium text-[var(--color-accent-ink)]">Start a new list</a>
+                    </>
+                  ) : (
+                    <>
+                      <p className="font-medium">No companies on the shortlist</p>
+                      <p className="mt-1 text-[var(--color-muted)]">None of the {results.companies.length} companies checked passed your must-have rules. Look at the full list, or loosen a rule and run again.</p>
+                    </>
+                  )}
                 </div>
               ) : (
                 <ol className="flex flex-col gap-4">
-                  {cards.map((c) => (
-                    <CompanyCard key={c.id} company={c} item={slMap.get(c.id)} results={results}
+                  {cards.map((c, i) => (
+                    <CompanyCard key={c.id} company={c} item={slMap.get(c.id)} results={results} index={i} selected={shortcutsOn && i === Math.min(selected, cards.length - 1)}
                       onOpen={(factId) => setOpen({ companyId: c.id, ...(factId ? { factId } : {}) })}
                       onPatch={(body) => patchCompany(c.id, body)} />
                   ))}
@@ -173,7 +233,7 @@ export function RunView({ runId, name, advisorEnabled, canCancel }: { runId: str
             </>
           )}
         </div>
-        {advisorEnabled && (
+        {advisorEnabled && results.companies.length > 0 && (
           <Advisor runId={runId} results={results}
             onOpenFact={(factId) => {
               const f = results.facts.find((x) => x.id === factId);

@@ -99,6 +99,11 @@ for (const scheme of ["light", "dark"]) {
 }
 
 // ---------------------------------------------------------------- the buyer journey through the UI
+// PUBLIC_ONLY=1 stops here (for a live site without demo mode, where nothing should be created).
+if (process.env.PUBLIC_ONLY) {
+  await browser.close();
+  finish();
+}
 const ctx = await browser.newContext({ ignoreHTTPSErrors: true, viewport: { width: 1280, height: 900 } });
 const page = await ctx.newPage();
 watch(page, "journey");
@@ -170,6 +175,40 @@ const csv = readFileSync(csvPath, "utf8");
 check("CSV downloads with the review note", csv.includes("Call the owner next week") && csv.split("\n").length >= 7, csv.slice(0, 200));
 });
 
+await step("excel download", page, async () => {
+  const [dl] = await Promise.all([page.waitForEvent("download", { timeout: 15_000 }), page.getByRole("link", { name: "Download Excel" }).click()]);
+  const buf = readFileSync(await dl.path());
+  check("Excel download is a real .xlsx (ZIP)", buf[0] === 0x50 && buf[1] === 0x4b && dl.suggestedFilename().endsWith(".xlsx"), dl.suggestedFilename());
+});
+
+await step("keyboard shortcuts", page, async () => {
+  await page.getByRole("button", { name: "Shortlist", exact: true }).click();
+  await page.evaluate(() => document.activeElement?.blur());
+  const sel = (n) => page.locator(`[data-card="${n}"][aria-current="true"]`).count();
+  await page.keyboard.press("j");
+  check("j selects the next company", (await sel(1)) === 1);
+  await page.keyboard.press("k");
+  check("k selects the previous company", (await sel(0)) === 1);
+  await page.keyboard.press("j");
+  await page.keyboard.press("2");
+  await page.locator('[data-card="1"]').getByText("Needs a check").waitFor({ timeout: 10_000 });
+  check("2 marks the selected company 'Needs a check'", true);
+  await page.keyboard.press("o");
+  await page.getByRole("dialog").waitFor({ timeout: 10_000 });
+  check("o opens the selected company's evidence", await page.getByRole("dialog").isVisible());
+  await page.keyboard.press("Escape");
+  await page.keyboard.press("?");
+  const help = page.getByRole("dialog", { name: "Keyboard shortcuts" });
+  await help.waitFor({ timeout: 5_000 });
+  check("? opens the shortcuts list", await help.isVisible());
+  check("shortcuts dialog has no serious accessibility issues", (await axe(page, "shortcuts-help")).length === 0);
+  await help.getByLabel("Use single-key shortcuts").uncheck();
+  await help.getByRole("button", { name: "Close" }).click();
+  await page.keyboard.press("j");
+  check("shortcuts can be turned off (WCAG 2.1.4)", (await page.locator('[aria-current="true"]').count()) === 0);
+  await page.evaluate(() => window.localStorage.setItem("sl.shortcuts", "on"));
+});
+
 // Other app pages.
 await step("app pages", page, async () => {
 for (const [path, label, text] of [["/app", "dashboard", "Your lists"], ["/app/new", "new-list", "What kind of company"], ["/app/team", "team", "Team"], ["/app/security", "security", "Two-factor authentication"]]) {
@@ -219,7 +258,7 @@ const ctx2 = await browser.newContext({ ignoreHTTPSErrors: true });
 const p2 = await ctx2.newPage();
 watch(p2, "signup");
 await trackCsp(p2);
-const email = `browser-${Date.now()}@example.com`;
+var email = `browser-${Date.now()}@example.com`; // eslint-disable-line no-var -- read by finish(), which can run before this line
 await step("sign up and sign in", p2, async () => {
 await visit(p2, "/sign-up", "signup-form", { shot: false });
 await p2.getByLabel("Your name").fill("Browser Test");
@@ -247,10 +286,14 @@ check("right password signs in", p2.url().includes("/app"), p2.url());
 await ctx2.close();
 await browser.close();
 
+finish();
+
+function finish() {
 check("no unexpected error responses", problems.unexpectedHttp.length === 0, problems.unexpectedHttp.slice(0, 5).join(" | "));
 check("no JavaScript errors", problems.pageErrors.length === 0 && problems.consoleErrors.length === 0, [...problems.pageErrors, ...problems.consoleErrors].slice(0, 3).join(" | "));
 check("no Content-Security-Policy violations", problems.cspViolations.length === 0, problems.cspViolations.slice(0, 3).join(" | "));
 const failed = checks.filter((c) => !c.ok);
 console.log(JSON.stringify({ passed: `${checks.length - failed.length}/${checks.length}`, failed, problems: Object.fromEntries(Object.entries(problems).map(([k, v]) => [k, [...new Set(v)].slice(0, 25)])) }, null, 1));
-console.log("BROWSER_TEST_EMAIL", email);
+console.log("BROWSER_TEST_EMAIL", typeof email === "undefined" ? "" : email);
 process.exit(failed.length ? 1 : 0);
+}

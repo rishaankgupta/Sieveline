@@ -90,8 +90,8 @@ Each milestone ends with a **gate**: its checks must pass before the next milest
 | M5-T04 | Grounding checks: cited fact ids validated; "not in evidence" path | M | in progress (server validates fact ids; 1 real question passed; 50-question eval not done) | Eval set of 50 questions: 100% valid citations, 0 invented facts |
 | M5-T05 | Deep dive: Research with `output_schema` + evidence files, streamed, cost confirm | M | done (polling instead of streaming; 1 real mini dive: 84 credits, 80 s, 16 sources) | Dossier renders with sources; credits recorded |
 | M5-T06 | Full list table: virtualized, sort, filter, search | M | in progress (sort/filter/search done; not virtualized, not tested at 500 rows) | 500 rows smooth |
-| M5-T07 | Evidence panel, review actions, notes, keyboard shortcuts | M | in progress (evidence dialog, review status done; notes and shortcuts not built) | Keyboard-only review E2E passes |
-| M5-T08 | CSV + Excel export with formula-injection escaping | S | in progress (CSV with formula escaping done; Excel not built) | `=cmd` exported as text |
+| M5-T07 | Evidence panel, review actions, notes, keyboard shortcuts | M | done (evidence dialog, review + note, review badge on cards, shortcuts j/k/o/p/h/1-3/?, can be turned off; browser-tested) | Keyboard-only review E2E passes |
+| M5-T08 | CSV + Excel export with formula-injection escaping | S | done (CSV with formula escaping; Excel .xlsx with inline strings, opened with openpyxl; both browser-tested) | `=cmd` exported as text |
 
 **Gate:** a real buyer can go from thesis to shortlist to deep dive. (Selling can start here.)
 
