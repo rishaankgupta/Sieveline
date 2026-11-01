@@ -9,7 +9,7 @@ import { authErrorMessage } from "@/lib/auth-errors";
 
 const SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
-export function SignUpForm({ nonce }: { nonce?: string }) {
+export function SignUpForm({ nonce, demoMode = false }: { nonce?: string; demoMode?: boolean }) {
   const router = useRouter();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -38,7 +38,9 @@ export function SignUpForm({ nonce }: { nonce?: string }) {
       setError(authErrorMessage(err));
       return;
     }
-    router.push(`/check-email?email=${encodeURIComponent(email)}`);
+    // Demo mode: no email confirmation; Better Auth already signed the user in.
+    if (demoMode) window.location.assign("/app");
+    else router.push(`/check-email?email=${encodeURIComponent(email)}`);
   }
 
   return (

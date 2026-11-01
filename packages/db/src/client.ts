@@ -24,7 +24,8 @@ function onIdleError(err: Error): void {
 export function createDb(connectionString: string): AnyDb {
   const isNeon = /\.neon\.tech(:\d+)?\//.test(connectionString) || process.env.DB_DRIVER === "neon";
   if (isNeon) {
-    const pool = new NeonPool({ connectionString, max: 5, idleTimeoutMillis: 10_000 });
+    // Neon's pooled endpoint (PgBouncer) multiplexes these, so 10 per instance is cheap.
+    const pool = new NeonPool({ connectionString, max: Number(process.env.DB_POOL_MAX ?? 10) || 10, idleTimeoutMillis: 10_000 });
     pool.on("error", onIdleError);
     return drizzleNeon({ client: pool, schema }) as unknown as AnyDb;
   }

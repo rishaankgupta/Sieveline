@@ -50,6 +50,13 @@ export const serverEnvSchema = z.object({
   EMAIL_FROM: optional,
   /** Header the host sets with the real client IP (Vercel overwrites x-forwarded-for). */
   CLIENT_IP_HEADER: z.string().trim().toLowerCase().default("x-forwarded-for"),
+  /**
+   * Pre-launch demo mode: sign-up needs no email confirmation and /api/demo creates a throwaway
+   * account with a sample list. The admin panel still requires two-factor. Turn off at launch.
+   */
+  DEMO_MODE: z.enum(["true", "false"]).default("false").transform((v) => v === "true"),
+  /** Credits a one-click demo account gets for trying a real search. */
+  DEMO_CREDIT_CAP: z.coerce.number().int().min(0).default(60),
   PLATFORM_OWNER_EMAILS: csv,
   ADMIN_IP_ALLOWLIST: csv,
   SENTRY_DSN: optional,
@@ -102,5 +109,6 @@ export function integrationStatus(env: ServerEnv): Record<string, boolean> {
     googleSignIn: Boolean(env.GOOGLE_CLIENT_ID && env.GOOGLE_CLIENT_SECRET),
     email: Boolean(env.EMAIL_PROVIDER_API_KEY && env.EMAIL_FROM),
     errorTracking: Boolean(env.SENTRY_DSN),
+    demoMode: env.DEMO_MODE,
   };
 }

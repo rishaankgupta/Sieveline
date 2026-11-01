@@ -1,14 +1,17 @@
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
-import { requireWorkspace, Unauthorized } from "@/server/session";
+import { isDemoEmail } from "@sieveline/db";
+import { requireUser, requireWorkspace, Unauthorized } from "@/server/session";
 import { SignOutButton } from "./sign-out-button";
 
 export const dynamic = "force-dynamic";
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
   let ws;
+  let demo: boolean;
   try {
     ws = await requireWorkspace();
+    demo = isDemoEmail((await requireUser()).email);
   } catch (e) {
     if (e instanceof Unauthorized) redirect("/sign-in?next=/app");
     throw e;
@@ -35,6 +38,11 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
           </div>
         </div>
       </header>
+      {demo && (
+        <p role="note" className="border-b border-amber-300 bg-amber-50 px-4 py-2 text-center text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950 dark:text-amber-100">
+          You&apos;re in a demo account. It&apos;s deleted after 24 hours. <a href="/sign-up" className="font-medium underline">Create a free account</a> to keep your work.
+        </p>
+      )}
       <main id="main" className="mx-auto max-w-7xl px-4 py-8 sm:px-6">{children}</main>
     </div>
   );

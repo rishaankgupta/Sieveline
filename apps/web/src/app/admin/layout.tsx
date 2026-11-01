@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { adminCan } from "@sieveline/core";
 import { notFound, redirect } from "next/navigation";
-import { AdminIdle, AdminNeeds2FA, AdminNotFound, requireStaff, type Staff } from "@/server/admin";
+import { AdminIdle, AdminNeeds2FA, AdminNotFound, AdminSignedOut, requireStaff, type Staff } from "@/server/admin";
 import { AdminActions } from "./admin-client";
 
 export const metadata: Metadata = { title: { template: "%s · Admin · Sieveline", default: "Admin · Sieveline" }, robots: { index: false, follow: false } };
@@ -15,6 +15,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   } catch (e) {
     if (e instanceof AdminNotFound) notFound();
     if (e instanceof AdminIdle) redirect("/sign-in?next=/admin&reason=idle");
+    if (e instanceof AdminSignedOut) redirect("/sign-in?next=/admin");
     if (e instanceof AdminNeeds2FA) {
       return (
         <main id="main" className="mx-auto max-w-lg px-4 py-16">

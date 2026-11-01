@@ -10,3 +10,4 @@ export * from "./deep-dives.ts";
 export * from "./admin.ts";
 export * from "./watchdog.ts";
 export * from "./ratelimit.ts";
+export * from "./sample.ts";

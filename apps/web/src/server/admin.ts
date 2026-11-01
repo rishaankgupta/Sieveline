@@ -48,6 +48,12 @@ export class AdminIdle extends HttpError {
     super(401, "Signed out after 30 minutes without activity", "admin_idle");
   }
 }
+/** The session was deleted (signed out, revoked, suspended) but a cached cookie still claims it. */
+export class AdminSignedOut extends HttpError {
+  constructor() {
+    super(401, "You were signed out. Please sign in again.", "admin_signed_out");
+  }
+}
 export class StepUpRequired extends HttpError {
   constructor() {
     super(401, "Enter a code from your authenticator app to continue", "step_up_required");
@@ -93,13 +99,16 @@ export async function requireStaff(action: AdminAction = "admin.view"): Promise<
   if (!user.twoFactorEnabled) throw new AdminNeeds2FA();
 
   const [row] = await db.select({ seen: schema.sessions.adminLastSeenAt }).from(schema.sessions).where(eq(schema.sessions.id, session.session.id));
+  // Always check the session row itself: Better Auth's 30 s cookie cache can still vouch for a
+  // session that was revoked, suspended or timed out, and admin access must end immediately.
+  if (!row) throw new AdminSignedOut();
   const now = Date.now();
-  if (row?.seen && now - row.seen.getTime() > ADMIN_IDLE_MS) {
+  if (row.seen && now - row.seen.getTime() > ADMIN_IDLE_MS) {
     await db.delete(schema.sessions).where(eq(schema.sessions.id, session.session.id));
     throw new AdminIdle();
   }
   // Throttled write: at most once a minute per session.
-  if (!row?.seen || now - row.seen.getTime() > 60_000) {
+  if (!row.seen || now - row.seen.getTime() > 60_000) {
     await db.update(schema.sessions).set({ adminLastSeenAt: new Date(now) }).where(eq(schema.sessions.id, session.session.id));
   }
 

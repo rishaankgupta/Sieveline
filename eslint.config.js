@@ -19,8 +19,11 @@ export default tseslint.config(
     },
   },
   {
-    // Command-line scripts print their results.
-    files: ["**/scripts/**/*.ts"],
+    // Command-line scripts print their results and run on Node.
+    files: ["**/scripts/**/*.ts", "**/scripts/**/*.mjs"],
+    languageOptions: {
+      globals: { process: "readonly", console: "readonly", fetch: "readonly", performance: "readonly", Buffer: "readonly", URL: "readonly" },
+    },
     rules: { "no-console": "off" },
   },
 );

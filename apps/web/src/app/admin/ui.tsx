@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 import { notFound, redirect } from "next/navigation";
 import { adminCan, type AdminAction } from "@sieveline/core";
-import { AdminIdle, AdminNeeds2FA, AdminNotFound, requireStaff } from "@/server/admin";
+import { AdminIdle, AdminNeeds2FA, AdminNotFound, AdminSignedOut, requireStaff } from "@/server/admin";
 import { HttpError } from "@/server/api";
 
 /**
@@ -17,6 +17,7 @@ export async function pageStaff(action: AdminAction = "admin.view") {
   } catch (e) {
     if (e instanceof AdminNotFound || e instanceof AdminNeeds2FA) notFound();
     if (e instanceof AdminIdle) redirect("/sign-in?next=/admin&reason=idle");
+    if (e instanceof AdminSignedOut) redirect("/sign-in?next=/admin");
     if (e instanceof HttpError && e.status === 403) notFound();
     throw e;
   }

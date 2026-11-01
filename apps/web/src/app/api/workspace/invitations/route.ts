@@ -1,10 +1,10 @@
 import { assertCan } from "@sieveline/core";
-import { createInvitation, hitRateLimit, INVITE_TTL_DAYS, listInvitations } from "@sieveline/db";
+import { createInvitation, hitRateLimit, INVITE_TTL_DAYS, isDemoEmail, listInvitations } from "@sieveline/db";
 import { z } from "zod";
 import { assertSameOrigin, handle, HttpError, readJson } from "@/server/api";
 import { app, logger } from "@/server/context";
 import { actionEmail, createEmailSender } from "@/server/email";
-import { requireWorkspace } from "@/server/session";
+import { requireUser, requireWorkspace } from "@/server/session";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +27,9 @@ export function POST(request: Request): Promise<Response> {
     assertSameOrigin(request, env.APP_URL);
     const ws = await requireWorkspace();
     assertCan(ws.role, "members.invite");
+    // Demo accounts can't send email invitations (they would be a free spam relay).
+    const me = await requireUser();
+    if (isDemoEmail(me.email)) throw new HttpError(403, "Invitations are turned off in the demo. Sign up to invite your team.");
     // Each invitation sends a real email: cap it so an account can't be used to spam.
     if (!(await hitRateLimit(db, `invite:${ws.userId}`, 20, 3_600_000))) throw new HttpError(429, "Too many invitations this hour. Please try again later.");
     const input = body.parse(await readJson(request));

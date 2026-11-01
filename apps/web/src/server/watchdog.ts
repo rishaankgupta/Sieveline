@@ -1,6 +1,6 @@
 import "server-only";
 import { deepDiveReserve, type DeepDiveModel } from "@sieveline/core";
-import { endRun, findStaleWork, finishDeepDive, SYSTEM_ACTOR, type AnyDb } from "@sieveline/db";
+import { deleteExpiredDemoAccounts, endRun, findStaleWork, finishDeepDive, SYSTEM_ACTOR, type AnyDb } from "@sieveline/db";
 import { getRun as getWorkflowRun } from "workflow/api";
 import { logger } from "./context";
 
@@ -37,6 +37,8 @@ export async function sweepStaleWork(db: AnyDb) {
     const credits = d.tavilyRequestId ? deepDiveReserve(d.model as DeepDiveModel) : 0;
     if (await finishDeepDive(db, { userId: SYSTEM_ACTOR, workspaceId: d.workspaceId }, d.id, { status: "failed", credits, error: "Stopped: took longer than 45 minutes" })) endedDives++;
   }
-  if (endedRuns || endedDives) logger.warn("watchdog ended stale work", { endedRuns, endedDives });
-  return { endedRuns, endedDives, checkedRuns: runs.length, checkedDives: dives.length };
+  // Demo accounts live 24 hours.
+  const demos = await deleteExpiredDemoAccounts(db, 24 * 3_600_000);
+  if (endedRuns || endedDives || demos.users) logger.warn("watchdog ended stale work", { endedRuns, endedDives, demoUsersDeleted: demos.users });
+  return { endedRuns, endedDives, checkedRuns: runs.length, checkedDives: dives.length, demoUsersDeleted: demos.users, demoWorkspacesDeleted: demos.workspaces };
 }

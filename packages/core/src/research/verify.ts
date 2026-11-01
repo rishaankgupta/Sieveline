@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { verifyQuote } from "../quotes.ts";
+import { cleanCompanyName } from "../text.ts";
 import type { CriterionResult } from "../scoring.ts";
 import type { Thesis } from "../thesis.ts";
 import type { LlmClient } from "./llm.ts";
@@ -32,6 +33,7 @@ const SYSTEM = [
   "For each rule answer yes, no, or unknown.",
   "For yes or no you MUST copy an exact quote of 5 to 40 words from the text that proves the answer, and give the page URL it came from.",
   "If the text does not clearly say, answer unknown with no quote. Never guess. Never use outside knowledge.",
+  "company_name: the company's own name as written on the site (e.g. 'Fox Valley Metrology'), never a page title, slogan or service description; null if unclear.",
   "summary: one plain sentence, under 30 words, saying what the company does, based only on the text.",
   "Return JSON only.",
 ].join(" ");
@@ -101,7 +103,7 @@ export async function verifyCompany(llm: LlmClient, thesis: Thesis, domain: stri
   }
 
   return {
-    name: value.company_name?.trim() || null,
+    name: cleanCompanyName(value.company_name, domain),
     summary: value.summary?.trim().slice(0, 300) || null,
     criteria,
     notes,

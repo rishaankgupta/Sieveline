@@ -21,3 +21,26 @@ export function contextAround(text: string, start: number, end: number, pad = 12
     .replace(/\s+/g, " ")
     .trim();
 }
+
+const TITLE_PREFIX = /^(official (company )?(website|site|information)|welcome to|home|about( us)?)\s*[:|\-–—]\s*/i;
+
+/**
+ * Cleans a company name the LLM read from a website. Page titles often come back instead of
+ * names ("Official Company Information: Tech Cal", "Home | Acme"). A name that shares no word
+ * with the domain is probably a slogan or title ("Texas ISO 17025 Calibration Services" for
+ * foxvalleymetrology.com), so it is dropped and the domain is shown instead.
+ */
+export function cleanCompanyName(raw: string | null | undefined, domain: string): string | null {
+  if (!raw) return null;
+  let name = raw.replace(/\s+/g, " ").trim().replace(TITLE_PREFIX, "");
+  // Drop "| tagline" / " - tagline" tails when the head alone matches the domain.
+  const head = name.split(/\s+[|–—]\s+|\s+-\s+/)[0]!.trim();
+  const label = domain.toLowerCase().replace(/^www\./, "").split(".")[0]!.replace(/[^a-z0-9]/g, "");
+  const shares = (s: string) =>
+    s.toLowerCase().split(/[^a-z0-9]+/).some((t) => t.length >= 3 && label.includes(t)) ||
+    // Initials like "JM" in jmtest.com
+    s.toLowerCase().split(/[^a-z0-9]+/).some((t) => t.length === 2 && label.startsWith(t));
+  if (head !== name && shares(head)) name = head;
+  if (!name || name.length > 100 || !shares(name)) return null;
+  return name;
+}

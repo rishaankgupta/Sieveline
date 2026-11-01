@@ -60,8 +60,9 @@ export function createAuth({ db, env, email, log, offline = false }: AuthDeps) {
     },
     emailAndPassword: {
       enabled: true,
-      requireEmailVerification: true,
-      autoSignIn: false,
+      // Demo mode (pre-launch): no email confirmation, signed in right after sign-up.
+      requireEmailVerification: !env.DEMO_MODE,
+      autoSignIn: env.DEMO_MODE,
       minPasswordLength: 12,
       maxPasswordLength: 128,
       revokeSessionsOnPasswordReset: true,
@@ -82,8 +83,8 @@ export function createAuth({ db, env, email, log, offline = false }: AuthDeps) {
       },
     },
     emailVerification: {
-      sendOnSignUp: true,
-      sendOnSignIn: true,
+      sendOnSignUp: !env.DEMO_MODE,
+      sendOnSignIn: !env.DEMO_MODE,
       autoSignInAfterVerification: true,
       expiresIn: 60 * 60 * 24,
       sendVerificationEmail: async ({ user, url }) => {
@@ -113,6 +114,8 @@ export function createAuth({ db, env, email, log, offline = false }: AuthDeps) {
       expiresIn: 60 * 60 * 24 * 7,
       updateAge: 60 * 60 * 24,
       freshAge: 60 * 15,
+      // No cookie cache on purpose: it would keep revoked or password-reset sessions valid for
+      // its lifetime. Measured cost of leaving it off: about 10-20% on authenticated pages.
     },
     rateLimit: {
       enabled: true,
