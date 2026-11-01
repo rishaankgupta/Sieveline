@@ -36,7 +36,11 @@ export default async function AdminRuns({ searchParams }: { searchParams: Promis
             const stuck = r.status === "running" && r.lastHeartbeatAt && now - new Date(r.lastHeartbeatAt).getTime() > STUCK_MS;
             return (
               <tr key={r.id}>
-                <Td><span className="font-medium">{r.thesisName ?? "—"}</span><div className="font-mono text-xs text-[var(--color-muted)]">{r.id.slice(0, 8)}</div></Td>
+                <Td>
+                  <span className="font-medium">{r.thesisName ?? "—"}</span>
+                  {r.sample && <span className="ml-2 rounded bg-[var(--color-bg)] px-1.5 py-0.5 text-xs text-[var(--color-muted)]">demo sample</span>}
+                  <div className="font-mono text-xs text-[var(--color-muted)]">{r.id.slice(0, 8)}</div>
+                </Td>
                 <Td>{r.workspaceName}</Td>
                 <Td>{r.status}{stuck && <strong className="ml-1 text-amber-700 dark:text-amber-400">(stuck?)</strong>}</Td>
                 <Td className="tabular-nums">{n(r.creditsUsed)} / {n(r.creditsReserved)}</Td>

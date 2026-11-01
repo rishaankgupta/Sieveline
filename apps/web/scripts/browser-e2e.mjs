@@ -1,6 +1,7 @@
 // Real-browser end-to-end suite (Chrome for Testing via playwright-core) against a running
 // production build behind an HTTPS front. Spends no Tavily credits and makes no LLM calls.
 // Usage: BASE=https://localhost:3443 node apps/web/scripts/browser-e2e.mjs
+import { createHmac } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { chromium } from "playwright-core";
@@ -13,7 +14,25 @@ const axeSource = readFileSync(createRequire(import.meta.url).resolve("axe-core/
 const checks = [];
 const problems = { consoleErrors: [], pageErrors: [], cspViolations: [], failedRequests: [], unexpectedHttp: [], a11y: [] };
 /** Error responses the suite causes on purpose (missing page, wrong passwords). Anything else is a finding. */
-const EXPECTED_HTTP = [/\/nope-404$/, /\/api\/auth\/sign-in\/email$/, /\/api\/auth\/two-factor\/enable$/];
+const EXPECTED_HTTP = [
+  [/\/nope-404$/, 404],
+  [/\/api\/auth\/sign-in\/email$/, 401],
+  [/\/api\/auth\/two-factor\/enable$/, null],
+  // The admin pass sends one change before entering a code (step_up_required) and one wrong code.
+  [/\/api\/admin\/workspaces\/[0-9a-f-]+$/, 401],
+  [/\/api\/admin\/step-up$/, 401],
+];
+/** RFC 6238 TOTP (SHA-1, 30 s, 6 digits) from a base32 key, like an authenticator app. */
+function totp(base32, at = Date.now()) {
+  const A = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+  const bits = base32.replace(/=+$/, "").toUpperCase().split("").map((c) => A.indexOf(c).toString(2).padStart(5, "0")).join("");
+  const key = Buffer.from(bits.match(/.{8}/g).map((b) => parseInt(b, 2)));
+  const counter = Buffer.alloc(8);
+  counter.writeBigUInt64BE(BigInt(Math.floor(at / 30_000)));
+  const h = createHmac("sha1", key).update(counter).digest();
+  const o = h[h.length - 1] & 15;
+  return String((h.readUInt32BE(o) & 0x7fffffff) % 1_000_000).padStart(6, "0");
+}
 const check = (name, ok, detail = "") => checks.push({ name, ok: Boolean(ok), detail: ok ? "" : String(detail).slice(0, 300) });
 /** Runs one part of the journey; an exception becomes a failed check (with a screenshot) instead of ending the suite. */
 async function step(name, page, fn) {
@@ -47,7 +66,8 @@ function watch(page, label) {
   page.on("response", (r) => {
     if (process.env.DEBUG_COOKIES && r.status() >= 300 && r.status() < 400) console.error("REDIRECT", label, r.status(), new URL(r.url()).pathname, "->", r.headers().location);
     if (process.env.DEBUG_COOKIES && r.headers()["set-cookie"]) console.error("SETCOOKIE", label, r.status(), r.request().method(), new URL(r.url()).pathname, r.headers()["set-cookie"].slice(0, 120));
-    if (r.status() >= 400 && !EXPECTED_HTTP.some((re) => re.test(new URL(r.url()).pathname))) problems.unexpectedHttp.push(`${label}: ${r.status()} ${r.request().method()} ${r.url()}`);
+    const expected = EXPECTED_HTTP.some(([re, status]) => re.test(new URL(r.url()).pathname) && (status === null || status === r.status()));
+    if (r.status() >= 400 && !expected) problems.unexpectedHttp.push(`${label}: ${r.status()} ${r.request().method()} ${r.url()}`);
   });
 }
 
@@ -282,6 +302,64 @@ await p2.getByLabel("Password").fill("correct horse battery staple 7");
 await p2.getByRole("button", { name: "Sign in" }).click();
 await p2.waitForURL(/\/app/, { timeout: 20_000 }).catch(() => {});
 check("right password signs in", p2.url().includes("/app"), p2.url());
+});
+
+// ---------------------------------------------------------------- admin panel (only with ADMIN_DB_URL, an owner connection)
+// Changes only this test user's own workspace; never the platform-wide kill switch (the database
+// is shared with the live site).
+if (process.env.ADMIN_DB_URL) await step("admin panel", p2, async () => {
+  const { createDb, schema } = await import("@sieveline/db");
+  const { eq } = await import("drizzle-orm");
+  const db = createDb(process.env.ADMIN_DB_URL);
+  await db.update(schema.users).set({ platformRole: "owner", emailVerified: true }).where(eq(schema.users.email, email));
+  await p2.goto(`${BASE}/admin`, { waitUntil: "networkidle" });
+  check("admin without 2FA asks for two-factor first", await p2.getByText("Turn on two-factor first").isVisible());
+
+  await p2.goto(`${BASE}/app/security`, { waitUntil: "networkidle" });
+  await p2.getByLabel("Your password").fill("correct horse battery staple 7");
+  await p2.getByRole("button", { name: "Set up two-factor" }).click();
+  const key = (await p2.locator("main code").first().textContent({ timeout: 15_000 }))?.trim() ?? "";
+  check("2FA setup shows a QR code and a key", key.length >= 16 && (await p2.getByAltText(/QR code/).isVisible()), key.length);
+  await p2.screenshot({ path: `${SHOTS}/2fa-setup.png`, fullPage: true });
+  await p2.getByLabel("6-digit code").fill(totp(key));
+  await p2.getByRole("button", { name: "Turn on" }).click();
+  await p2.getByText("Two-factor is on").first().waitFor({ timeout: 15_000 });
+  check("2FA turns on with a code from the key", true);
+  check("backup codes are shown once", (await p2.locator("main ul li.select-all").count()) >= 8);
+
+  for (const [path, label, heading] of [["/admin", "admin-overview", "Overview"], ["/admin/users", "admin-users", "Users"], ["/admin/workspaces", "admin-workspaces", "Workspaces"], ["/admin/runs", "admin-runs", "Lists (runs)"], ["/admin/settings", "admin-settings", "Settings"], ["/admin/integrations", "admin-integrations", "Integrations"], ["/admin/audit", "admin-audit", "Audit log"], ["/admin/staff", "admin-staff", "Staff"]]) {
+    const res = await visit(p2, path, label);
+    check(`${label} loads`, res?.ok() && (await p2.getByRole("heading", { name: heading, level: 1 }).isVisible()), res?.status());
+    check(`${label} has no serious accessibility issues`, (await axe(p2, label)).length === 0);
+  }
+
+  // Step-up in the browser: change this user's own workspace cap; the panel asks for a fresh code.
+  p2.on("dialog", (d) => d.accept(d.message().startsWith("Extra credits") ? "100" : "browser e2e test"));
+  await p2.goto(`${BASE}/admin/workspaces?q=${encodeURIComponent("Browser's workspace")}`, { waitUntil: "networkidle" });
+  const capInput = p2.getByLabel("Monthly credit cap").first();
+  await capInput.fill("450");
+  await p2.getByRole("button", { name: "Save", exact: true }).first().click();
+  const su = p2.getByRole("dialog", { name: "Confirm it's you" });
+  await su.waitFor({ timeout: 10_000 });
+  check("a change asks for a fresh authenticator code", await su.isVisible());
+  check("code dialog has no serious accessibility issues", (await axe(p2, "step-up-dialog")).length === 0);
+  await su.getByLabel("6-digit code").fill("000000");
+  await su.getByRole("button", { name: "Confirm" }).click();
+  await su.locator("[role=alert]").waitFor({ timeout: 10_000 });
+  check("a wrong code is refused in the dialog", (await su.locator("[role=alert]").textContent())?.includes("didn't work"));
+  await su.getByLabel("6-digit code").fill(totp(key));
+  await su.getByRole("button", { name: "Confirm" }).click();
+  await p2.waitForLoadState("networkidle");
+  await p2.waitForTimeout(1500);
+  check("cap saved after the code", (await p2.getByLabel("Monthly credit cap").first().inputValue()) === "450");
+  // Inside the 5-minute window, a second change needs no new code.
+  await p2.getByRole("button", { name: "Grant credits" }).first().click();
+  await p2.getByText("+ 100 extra this month").first().waitFor({ timeout: 15_000 });
+  check("grant works without a second code (5-minute window)", true);
+  await p2.screenshot({ path: `${SHOTS}/admin-workspaces-after.png`, fullPage: true });
+  const grants = await db.select().from(schema.auditLog).where(eq(schema.auditLog.action, "admin.workspace.credits_granted"));
+  const log = grants.at(-1);
+  check("the grant is in the audit log with the reason", log?.after?.reason === "browser e2e test", JSON.stringify(log?.after));
 });
 await ctx2.close();
 await browser.close();

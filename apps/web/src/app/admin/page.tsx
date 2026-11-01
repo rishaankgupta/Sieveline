@@ -16,7 +16,7 @@ export default async function AdminOverview() {
   const max = Math.max(1, ...days.map((d) => d.credits));
   return (
     <div className="flex flex-col gap-8">
-      <PageTitle title="Overview" sub="Live numbers from the database. Credits are Tavily credits as metered by Sieveline." />
+      <PageTitle title="Overview" sub="Live numbers from the database. Credits are Tavily credits as metered by Sieveline. User, workspace and list counts leave out demo accounts and their copied sample lists." />
       {(swept.endedRuns > 0 || swept.endedDives > 0) && (
         <p role="status" className="rounded-lg border border-amber-400 bg-amber-50 p-3 text-amber-900 dark:bg-amber-950 dark:text-amber-100">
           Just stopped {swept.endedRuns} stuck list(s) and {swept.endedDives} overdue deep dive(s) and released their credits.
@@ -27,11 +27,12 @@ export default async function AdminOverview() {
           All research is paused (kill switch). <a href="/admin/settings" className="underline">Change</a>
         </p>
       )}
-      <section aria-label="People" className="grid grid-cols-2 gap-3 md:grid-cols-4">
+      <section aria-label="People" className="grid grid-cols-2 gap-3 md:grid-cols-5">
         <Stat label="Users" value={n(o.users)} />
         <Stat label="New users (7 days)" value={n(o.users_7d)} />
-        <Stat label="Suspended users" value={n(o.users_suspended)} />
+        <Stat label="Demo accounts (live 24 h)" value={n(o.demo_users)} />
         <Stat label="Workspaces" value={n(o.workspaces)} />
+        <Stat label="Suspended users" value={n(o.users_suspended)} warn={o.users_suspended > 0} />
       </section>
       <section aria-label="Research" className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <Stat label="Lists started today" value={n(o.runs_today)} />

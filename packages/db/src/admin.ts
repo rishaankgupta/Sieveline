@@ -1,5 +1,6 @@
 import { and, desc, eq, gte, ilike, inArray, lt, or, sql } from "drizzle-orm";
 import { monthStart } from "./research.ts";
+import { DEMO_EMAIL_DOMAIN } from "./sample.ts";
 import * as s from "./schema.ts";
 import type { AnyDb } from "./workspaces.ts";
 
@@ -48,26 +49,34 @@ export async function adminRecentFailures(db: AnyDb, userId: string, action: str
 }
 
 // ---------------------------------------------------------------- overview
+/**
+ * Platform numbers. Demo accounts (throwaway, deleted after 24 h) and copied sample lists are
+ * counted separately so they don't inflate real usage.
+ */
 export async function adminOverview(db: AnyDb) {
+  const demo = `%@${DEMO_EMAIL_DOMAIN}`;
   const r = await db.execute(sql`
+    with real_runs as (select * from runs where coalesce((settings_snapshot->>'sample')::boolean, false) = false)
     select
-      (select count(*)::int from users) as users,
-      (select count(*)::int from users where created_at >= now() - interval '7 days') as users_7d,
+      (select count(*)::int from users where lower(email) not like ${demo}) as users,
+      (select count(*)::int from users where lower(email) not like ${demo} and created_at >= now() - interval '7 days') as users_7d,
       (select count(*)::int from users where suspended_at is not null) as users_suspended,
-      (select count(*)::int from workspaces) as workspaces,
-      (select count(*)::int from runs where created_at >= date_trunc('day', now())) as runs_today,
-      (select count(*)::int from runs where status in ('queued','running')) as runs_active,
-      (select count(*)::int from runs where status = 'failed' and created_at >= now() - interval '7 days') as runs_failed_7d,
-      (select count(*)::int from deep_dives where created_at >= now() - interval '30 days') as deep_dives_30d,
+      (select count(*)::int from users where lower(email) like ${demo}) as demo_users,
+      (select count(*)::int from workspaces w where exists (
+        select 1 from memberships m join users u on u.id = m.user_id where m.workspace_id = w.id and lower(u.email) not like ${demo})) as workspaces,
+      (select count(*)::int from real_runs where created_at >= date_trunc('day', now())) as runs_today,
+      (select count(*)::int from real_runs where status in ('queued','running')) as runs_active,
+      (select count(*)::int from real_runs where status = 'failed' and created_at >= now() - interval '7 days') as runs_failed_7d,
+      (select count(*)::int from deep_dives where created_at >= now() - interval '30 days' and tavily_request_id is not null) as deep_dives_30d,
       (select coalesce(sum(credits),0) from usage_events where provider='tavily' and created_at >= date_trunc('day', now())) as credits_today,
       (select coalesce(sum(credits),0) from usage_events where provider='tavily' and created_at >= date_trunc('month', now())) as credits_month,
       (select coalesce(sum(cost_usd),0) from usage_events where provider='llm' and created_at >= date_trunc('month', now())) as llm_usd_month,
       (select coalesce(sum(credits_reserved),0) from workspaces) as credits_reserved,
-      (select count(*)::int from runs where status = 'running' and last_heartbeat_at < now() - interval '30 minutes') as runs_stuck
+      (select count(*)::int from real_runs where status = 'running' and last_heartbeat_at < now() - interval '30 minutes') as runs_stuck
   `);
   const o = rowsOf<Record<string, string | number>>(r)[0] ?? {};
   return Object.fromEntries(Object.entries(o).map(([k, v]) => [k, num(v)])) as Record<
-    "users" | "users_7d" | "users_suspended" | "workspaces" | "runs_today" | "runs_active" | "runs_failed_7d" | "deep_dives_30d" |
+    "users" | "users_7d" | "users_suspended" | "demo_users" | "workspaces" | "runs_today" | "runs_active" | "runs_failed_7d" | "deep_dives_30d" |
     "credits_today" | "credits_month" | "llm_usd_month" | "credits_reserved" | "runs_stuck",
     number
   >;
@@ -197,6 +206,7 @@ export async function adminListRuns(db: AnyDb, opts: { status?: string; limit?: 
       creditsReserved: s.runs.creditsReserved, creditsUsed: s.runs.creditsUsed, llmCostUsd: s.runs.llmCostUsd, error: s.runs.error,
       createdAt: s.runs.createdAt, finishedAt: s.runs.finishedAt, lastHeartbeatAt: s.runs.lastHeartbeatAt, refundedAt: s.runs.refundedAt,
       thesisName: sql<string>`${s.runs.thesisSnapshot}->>'name'`,
+      sample: sql<boolean>`coalesce((${s.runs.settingsSnapshot}->>'sample')::boolean, false)`,
     })
     .from(s.runs)
     .innerJoin(s.workspaces, eq(s.workspaces.id, s.runs.workspaceId))
