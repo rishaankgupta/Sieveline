@@ -74,7 +74,7 @@ Each milestone ends with a **gate**: its checks must pass before the next milest
 
 | ID | Task | Size | Status | Done when |
 |---|---|---|---|---|
-| M4-T01 | Design tokens, layout shell, navigation, light/dark | M | in progress (tokens, shell, nav, light/dark done; axe not run yet) | axe: 0 serious issues |
+| M4-T01 | Design tokens, layout shell, navigation, light/dark | M | done (tokens, shell, nav, light/dark; axe WCAG 2.2 AA: 0 serious issues on all public pages, desktop and mobile, and app pages) | axe: 0 serious issues |
 | M4-T02 | Plain-words thesis entry → editable rules; calibration-lab template | M | done (describe in plain words -> LLM draft -> editable rules; saved per run) | E2E: describe, edit, save, version |
 | M4-T03 | Cost estimate before run | S | in progress (estimate shown before start; E2E: 57 max / 34 typical vs 8 actual; 20-run check not done) | Estimate ≥ actual in 20 test runs |
 | M4-T04 | Run page with live progress per stage and cancel | M | done (live stages; Stop button settles the hold and blocks further Tavily calls) | Updates ≤ 5 s; cancel stops spending |

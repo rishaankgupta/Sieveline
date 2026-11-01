@@ -44,7 +44,9 @@ export function Team({ you, canInvite, canManage, canAudit }: { you: string; can
       setError(e instanceof ApiError ? e.message : "Couldn't load the team.");
     }
   }, [canInvite, canAudit]);
-  useEffect(() => void load(), [load]);
+  useEffect(() => {
+    void load();
+  }, [load]);
 
   async function act(fn: () => Promise<unknown>, done?: string) {
     setError(null);

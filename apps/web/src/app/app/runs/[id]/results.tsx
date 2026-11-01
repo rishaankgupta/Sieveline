@@ -56,7 +56,7 @@ export function CompanyCard({ company, item, results, onOpen, onPatch }: {
             <FitBadge status={company.status} />
             {item?.pinned && <span className="text-xs font-medium text-[var(--color-accent)]">Pinned</span>}
           </h2>
-          {site && <a href={site} target="_blank" rel="noopener noreferrer nofollow" className="text-sm text-[var(--color-muted)] underline">{company.domain}</a>}
+          {site && <a href={site} target="_blank" rel="noopener noreferrer nofollow" className="text-sm text-[var(--color-muted)] underline">{company.name ? company.domain : "Visit website"}</a>}
           {company.summary && <p className="mt-2">{company.summary}</p>}
           {item?.reason && <p className="mt-2 text-sm text-[var(--color-muted)]">{item.reason}</p>}
         </div>

@@ -57,7 +57,11 @@ export function Advisor({ runId, results, onOpenFact, onActions }: {
       )
       .catch(() => undefined);
   }, [runId]);
-  useEffect(() => end.current?.scrollIntoView({ block: "end" }), [messages, busy]);
+  // Block body on purpose: scrollIntoView() returns a Promise in current Chrome, and an effect that
+  // returns anything but a cleanup function crashes React when it next runs.
+  useEffect(() => {
+    end.current?.scrollIntoView({ block: "end" });
+  }, [messages, busy]);
 
   const allFacts = results.facts;
 
