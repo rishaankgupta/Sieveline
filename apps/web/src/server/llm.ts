@@ -34,7 +34,7 @@ export function createLlm(env: ServerEnv, fetchImpl?: typeof fetch): LlmClient |
           prompt,
           temperature: 0,
           maxOutputTokens: maxOutputTokens ?? 1500,
-          maxRetries: 2,
+          maxRetries: env.LLM_MAX_RETRIES,
           abortSignal: AbortSignal.timeout(90_000),
         });
       } catch (e) {

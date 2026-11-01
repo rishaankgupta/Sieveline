@@ -1,12 +1,12 @@
 import {
   applyNewsFlags, budgetedTavily, buildShortlist, CreditLimitReached, parseThesis, rankCompanies, researchSettingsSchema,
-  stageCrawl, stageDiscover, stageNews, stageRead, stageScore, type Candidate,
+  stageCrawl, stageDiscover, stageNews, stageRead, stageScore, TavilyError, type Candidate,
 } from "@sieveline/core";
 import {
   getRun, isResearchPausedFor, listCompanies, listFacts, recordStep, runCreditsRemaining, saveScoredCompany, saveShortlist, setRunStatus, settleRun,
   upsertCompanies,
 } from "@sieveline/db";
-import { FatalError } from "workflow";
+import { FatalError, RetryableError } from "workflow";
 import { llmForRun, researchDeps, researchLog, tavilyForRun } from "../server/research-deps.ts";
 import { factsFor, scoredFromRows } from "../server/research-store.ts";
 
@@ -29,24 +29,51 @@ export async function researchRun(input: RunInput) {
   await markRunning(input);
   try {
     const discovered = await discoverStep(input);
-    let stopped = discovered.stopped;
+    let stop: StepOut = discovered;
     const domains = discovered.domains;
-    for (let i = 0; i < domains.length && !stopped; i += READ_BATCH) {
-      stopped = (await readAndScoreStep(input, domains.slice(i, i + READ_BATCH), i / READ_BATCH)).stopped;
+    for (let i = 0; i < domains.length && !stop.stopped; i += READ_BATCH) {
+      stop = await readAndScoreStep(input, domains.slice(i, i + READ_BATCH), i / READ_BATCH);
     }
     const top = await pickTopStep(input);
-    for (let i = 0; i < top.news.length && !stopped; i += READ_BATCH) {
-      stopped = (await newsStep(input, top.news.slice(i, i + READ_BATCH), i / READ_BATCH)).stopped;
+    for (let i = 0; i < top.news.length && !stop.stopped; i += READ_BATCH) {
+      stop = await newsStep(input, top.news.slice(i, i + READ_BATCH), i / READ_BATCH);
     }
-    for (let i = 0; i < top.crawl.length && !stopped; i += DEEP_BATCH) {
-      stopped = (await crawlStep(input, top.crawl.slice(i, i + DEEP_BATCH), i / DEEP_BATCH)).stopped;
+    for (let i = 0; i < top.crawl.length && !stop.stopped; i += DEEP_BATCH) {
+      stop = await crawlStep(input, top.crawl.slice(i, i + DEEP_BATCH), i / DEEP_BATCH);
     }
-    return await finalizeStep(input, stopped);
+    return await finalizeStep(input, stop.stopped ? (stop.why ?? "credits") : null);
   } catch (e) {
     await failRun(input, e instanceof Error ? e.message : "Research failed");
     throw e;
   }
 }
+
+/** Why a run ended before its last stage. Both keep everything found so far. */
+type StopReason = "credits" | "tavily_limit";
+interface StepOut {
+  stopped: boolean;
+  why?: StopReason;
+}
+
+/**
+ * Failures that should end the run early with its results (not retried): our own credit budget
+ * (which is also how a paused platform or workspace shows up) and Tavily's account limits.
+ */
+function stopReason(e: unknown): StopReason | null {
+  if (e instanceof CreditLimitReached) return "credits";
+  if (e instanceof TavilyError && (e.code === "plan_limit" || e.code === "paygo_limit")) return "tavily_limit";
+  return null;
+}
+
+/** A rejected API key won't fix itself, so fail now instead of after three retries. */
+function failFastOn(e: unknown): void {
+  if (e instanceof TavilyError && (e.code === "unauthorized" || e.code === "forbidden")) {
+    throw new FatalError("The research provider rejected Sieveline's API key. An operator needs to check TAVILY_API_KEY.");
+  }
+}
+
+/** Wait before retrying a batch whose AI scoring failed entirely (free models allow ~2 requests a minute). */
+const scoringRetryMs = () => (Number(process.env.SCORING_RETRY_SECONDS ?? 60) || 60) * 1000;
 
 // ---------------------------------------------------------------- shared helpers (step context)
 async function loadRun(input: RunInput) {
@@ -95,7 +122,7 @@ async function markRunning(input: RunInput) {
   await setRunStatus(db, input, input.runId, { status: "running", started: true });
 }
 
-async function discoverStep(input: RunInput): Promise<{ domains: string[]; stopped: boolean }> {
+async function discoverStep(input: RunInput): Promise<StepOut & { domains: string[] }> {
   "use step";
   return trackStep(input, "discover", 0, async () => {
     const { db, run, thesis, settings } = await loadRun(input);
@@ -108,16 +135,18 @@ async function discoverStep(input: RunInput): Promise<{ domains: string[]; stopp
       await upsertCompanies(db, input, input.runId, candidates.map((c) => ({ domain: c.domain, name: c.name, source: c.source, foundBy: c.foundBy })));
       return { domains: candidates.map((c) => c.domain), stopped: false };
     } catch (e) {
-      if (e instanceof CreditLimitReached) {
+      const why = stopReason(e);
+      if (why) {
         if (seeds.length) await upsertCompanies(db, input, input.runId, seeds);
-        return { domains: seeds.map((s) => s.domain), stopped: true };
+        return { domains: seeds.map((s) => s.domain), stopped: true, why };
       }
+      failFastOn(e);
       throw e;
     }
   });
 }
 
-async function readAndScoreStep(input: RunInput, domains: string[], batch: number): Promise<{ stopped: boolean }> {
+async function readAndScoreStep(input: RunInput, domains: string[], batch: number): Promise<StepOut> {
   "use step";
   return trackStep(input, "read_score", batch, async () => {
     const { db, thesis, settings } = await loadRun(input);
@@ -128,14 +157,24 @@ async function readAndScoreStep(input: RunInput, domains: string[], batch: numbe
     try {
       pages = await stageRead({ tavily }, thesis, settings, candidates);
     } catch (e) {
-      if (e instanceof CreditLimitReached) return { stopped: true };
+      const why = stopReason(e);
+      if (why) return { stopped: true, why };
+      failFastOn(e);
       throw e;
     }
     const llm = llmForRun(input, input.runId);
-    for (const c of candidates) {
-      const scored = await stageScore({ ...(llm ? { llm } : {}) }, thesis, c, pages.get(c.domain) ?? []);
+    const all = [];
+    for (const c of candidates) all.push(await stageScore({ ...(llm ? { llm } : {}) }, thesis, c, pages.get(c.domain) ?? []));
+    // If the AI failed for every company, saving would fill the list with "unknown" answers.
+    // Retry the batch later instead (re-reading pages is free: they are cached).
+    const failed = all.filter((x) => x.verified.notes.some((n) => n.startsWith("scoring failed")));
+    if (llm && all.length > 0 && failed.length === all.length) {
+      researchLog.warn("AI scoring failed for a whole batch; retrying", { runId: input.runId, batch, note: failed[0]?.verified.notes[0]?.slice(0, 160) });
+      throw new RetryableError(`AI scoring failed for all ${all.length} companies in a batch`, { retryAfter: scoringRetryMs() });
+    }
+    for (const scored of all) {
       await saveScoredCompany(db, input, input.runId, {
-        domain: c.domain, name: scored.name, score: scored.result.score, status: scored.result.status,
+        domain: scored.domain, name: scored.name, score: scored.result.score, status: scored.result.status,
         failedRule: scored.result.failedRule, summary: scored.verified.summary, pages: scored.pages, facts: factsFor(scored),
       });
     }
@@ -156,7 +195,7 @@ async function pickTopStep(input: RunInput): Promise<{ news: string[]; crawl: st
   };
 }
 
-async function newsStep(input: RunInput, domains: string[], batch: number): Promise<{ stopped: boolean }> {
+async function newsStep(input: RunInput, domains: string[], batch: number): Promise<StepOut> {
   "use step";
   return trackStep(input, "news", batch, async () => {
     const { db, thesis, settings, scored } = await loadScored(input, domains);
@@ -166,7 +205,9 @@ async function newsStep(input: RunInput, domains: string[], batch: number): Prom
       try {
         flags = await stageNews({ tavily }, c);
       } catch (e) {
-        if (e instanceof CreditLimitReached) return { stopped: true };
+        const why = stopReason(e);
+        if (why) return { stopped: true, why };
+        failFastOn(e);
         throw e;
       }
       const updated = applyNewsFlags(c, flags, thesis);
@@ -179,7 +220,7 @@ async function newsStep(input: RunInput, domains: string[], batch: number): Prom
   });
 }
 
-async function crawlStep(input: RunInput, domains: string[], batch: number): Promise<{ stopped: boolean }> {
+async function crawlStep(input: RunInput, domains: string[], batch: number): Promise<StepOut> {
   "use step";
   return trackStep(input, "crawl", batch, async () => {
     const { db, thesis, settings, scored } = await loadScored(input, domains);
@@ -190,7 +231,9 @@ async function crawlStep(input: RunInput, domains: string[], batch: number): Pro
       try {
         deep = await stageCrawl({ tavily, ...(llm ? { llm } : {}) }, thesis, settings, c);
       } catch (e) {
-        if (e instanceof CreditLimitReached) return { stopped: true };
+        const why = stopReason(e);
+        if (why) return { stopped: true, why };
+        failFastOn(e);
         throw e;
       }
       await saveScoredCompany(db, input, input.runId, {
@@ -202,17 +245,21 @@ async function crawlStep(input: RunInput, domains: string[], batch: number): Pro
   });
 }
 
-async function finalizeStep(input: RunInput, stoppedEarly: boolean) {
+async function finalizeStep(input: RunInput, why: StopReason | null) {
   "use step";
+  const stoppedEarly = why !== null;
   const { db, thesis, settings } = await loadRun(input);
   const rows = await listCompanies(db, input, input.runId);
   const { scored } = await loadScored(input, rows.map((r) => r.domain));
   const shortlist = buildShortlist(scored, thesis, settings.shortlistSize);
   await saveShortlist(db, input, input.runId, shortlist);
   await settleRun(db, input, input.runId);
-  const reason = stoppedEarly
-    ? (await isResearchPausedFor(db, input)) ? "Stopped early: research was paused by an operator" : "Stopped early: credit reservation used up"
-    : null;
+  const reason =
+    why === null ? null
+    : why === "tavily_limit" ? "Stopped early: the research provider's monthly credits ran out. Companies found so far are kept."
+    : (await isResearchPausedFor(db, input)) ? "Stopped early: research was paused by an operator"
+    : "Stopped early: credit reservation used up";
+  if (why === "tavily_limit") researchLog.error("Tavily account limit reached during a run", { runId: input.runId });
   await setRunStatus(db, input, input.runId, { status: "succeeded", finished: true, error: reason });
   researchLog.info("run finished", { runId: input.runId, companies: rows.length, shortlist: shortlist.length, stoppedEarly });
   return { companies: rows.length, shortlist: shortlist.length, stoppedEarly };
@@ -222,5 +269,18 @@ async function failRun(input: RunInput, message: string) {
   "use step";
   const { db } = researchDeps();
   await settleRun(db, input, input.runId);
-  await setRunStatus(db, input, input.runId, { status: "failed", finished: true, error: message });
+  await setRunStatus(db, input, input.runId, { status: "failed", finished: true, error: userFacingError(message) });
+  researchLog.warn("run failed", { runId: input.runId, error: message.slice(0, 500) });
+}
+
+/**
+ * What the buyer sees when a run fails. The runtime wraps step errors as
+ * `Step "<internal id>" failed after 3 retries: <message>`; internal ids and unexpected errors
+ * (database, bugs) are not shown, only messages written for people.
+ */
+export function userFacingError(message: string): string {
+  const core = (message.match(/^Step "[^"]*" (?:failed after \d+ retr(?:y|ies)|exceeded max retries[^:]*): ([\s\S]*)$/)?.[1] ?? message).trim();
+  if (/AI scoring failed/.test(core)) return "The AI that checks companies kept failing, so this list was stopped. Unused credits were returned; please try again later.";
+  if (/rejected Sieveline's API key/.test(core)) return core;
+  return "Something went wrong while researching, so this list was stopped. Unused credits were returned.";
 }

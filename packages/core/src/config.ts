@@ -35,6 +35,8 @@ export const serverEnvSchema = z.object({
   LLM_PRICE_OUTPUT_PER_MTOK: z.coerce.number().min(0).default(0),
   /** Requests per minute allowed by the provider (free tiers are low, e.g. 2). 0 = no local limit. */
   LLM_MAX_RPM: z.coerce.number().int().min(0).default(0),
+  /** Retries per LLM request on rate limits and server errors (the AI SDK backs off between them). */
+  LLM_MAX_RETRIES: z.coerce.number().int().min(0).max(5).default(2),
   /** Test-only override; must be https in production. */
   TAVILY_BASE_URL: z.string().url().default("https://api.tavily.com"),
   /** Separate connection for the admin panel (login role in sieveline_admin). */
